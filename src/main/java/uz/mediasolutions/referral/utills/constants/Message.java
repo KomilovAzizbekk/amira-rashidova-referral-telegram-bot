@@ -1,0 +1,66 @@
+package uz.mediasolutions.referral.utills.constants;
+
+public interface Message {
+    String USERNAME_NOT_FOUND = "username.not.found";
+    String MISMATCH_PASSWORDS = "mismatch.passwords";
+    String USER_ALREADY_REGISTERED = "user.already.registered";
+    String USER_NOT_FOUND_OR_DISABLED = "user.not.found.or.disabled";
+    String BAD_REQUEST = "bad.request";
+
+
+    String LANG_SAME_FOR_2_LANG = "lang.same.for.2.lang";
+    String UZBEK = "uzbek";
+    String RUSSIAN = "russian";
+    String ENTER_NAME = "enter.name";
+    String ENTER_PHONE_NUMBER = "enter.phone.number";
+    String SHARE_PHONE_NUMBER = "share.phone.number";
+    String INCORRECT_PHONE_FORMAT = "incorrect.phone.format";
+    String MENU_MSG = "menu.msg";
+    String MENU_WEBSITE = "menu.website";
+    String MENU_MY_ORDERS = "menu.my.orders";
+    String MENU_SUG_COMP = "menu.sug.comp";
+    String MENU_SETTINGS = "menu.settings";
+    String SEND_SUG_COMP = "send.sug.comp";
+    String RESPONSE_SUG_COMP = "response.sug.comp";
+    String SETTINGS = "settings";
+    String SUGGEST_COMPLAINT = "suggest.complaint";
+    String CHANGE_NAME = "change.name";
+    String CHANGE_PHONE_NUMBER = "change.phone.number";
+    String CHANGE_LANGUAGE = "change.language";
+    String NAME_CHANGED = "name.changed";
+    String PHONE_NUMBER_CHANGED = "phone.number.changed";
+    String LANGUAGE_CHANGED = "language.changed";
+    String SEND_LOCATION = "send.location";
+    String FOR_LOCATION = "for.location";
+    String SEND_COMMENT = "send.comment";
+    String SKIP_COMMENT = "skip.comment";
+    String YOU_ARE_BANNED = "you.are.banned";
+    String USER_INFO = "user.info";
+    String NOT_EXISTS = "not.exists";
+    String CHOOSE_PAYMENT = "choose.payment";
+    String CLICK = "click";
+    String PAYME = "payme";
+    String CASH = "cash";
+    String FOR_PAYMENT = "for.payment";
+    String GO_PAYMENT = "go.payment";
+    String REJECTED = "rejected";
+    String ACCEPTED = "accepted";
+    String REJECT = "reject";
+    String ACCEPT = "accept";
+    String ORDER_MSG = "order.msg";
+    String IS_DELIVERY = "is.delivery";
+    String PICK_UP = "pick.up";
+    String DELIVERY = "delivery";
+    String CHOOSE_BRANCH = "choose.branch";
+    String IN_MAP = "in.map";
+    String NO_INFO = "no.info";
+    String ORDER_PENDING = "order.pending";
+    String PRODUCTS = "products";
+    String WITH_OWN = "with.own";
+    String BACK_TO_MENU = "back.to.menu";
+    String NO_WORKING_BRANCH = "no.working.branch";
+    String ORDER_MSG_TO_USER = "order.msg.to.user";
+    String REGISTRATION_MESSAGE = "registration.message";
+    String APPROVE = "approve";
+    String WELCOME_TO_MENU = "welcome.to.menu";
+}
