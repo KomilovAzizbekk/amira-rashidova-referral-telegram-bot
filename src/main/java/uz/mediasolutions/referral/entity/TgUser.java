@@ -32,9 +32,6 @@ public class TgUser extends AbsLong {
     @Column(name = "username")
     private String username;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Language language;
-
     @Column(name = "registered")
     private boolean registered;
 
@@ -58,4 +55,7 @@ public class TgUser extends AbsLong {
 
     @Column(name = "course_student")
     private boolean courseStudent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private PromoCode usingPromo;
 }

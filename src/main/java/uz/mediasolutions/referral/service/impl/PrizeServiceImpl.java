@@ -28,8 +28,8 @@ public class PrizeServiceImpl implements PrizeService {
         if (search.equals("null")) {
             prizes = prizeRepository.findAllByOrderByPointAsc(pageable);
         } else {
-            prizes = prizeRepository.findAllByNameUzContainsIgnoreCaseOrNameRuContainsIgnoreCaseOrderByPointAsc(
-                    search, search, pageable);
+            prizes = prizeRepository.findAllByNameContainsIgnoreCaseOrderByPointAsc(
+                    search, pageable);
         }
         Page<PrizeDTO> mapped = prizes.map(prizeMapper::toDTO);
         return ApiResult.success(mapped);
@@ -54,8 +54,7 @@ public class PrizeServiceImpl implements PrizeService {
     public ApiResult<?> edit(Long id, PrizeDTO dto) {
         Prize prize = prizeRepository.findById(id).orElseThrow(
                 () -> RestException.restThrow("PRIZE NOT FOUND", HttpStatus.BAD_REQUEST));
-        prize.setNameUz(dto.getNameUz());
-        prize.setNameRu(dto.getNameRu());
+        prize.setName(dto.getName().trim());
         prize.setPoint(dto.getPoint());
         prize.setActive(dto.isActive());
         prizeRepository.save(prize);

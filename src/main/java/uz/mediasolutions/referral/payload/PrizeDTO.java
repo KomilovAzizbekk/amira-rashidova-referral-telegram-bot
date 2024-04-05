@@ -14,9 +14,7 @@ public class PrizeDTO {
 
     private Long id;
 
-    private String nameUz;
-
-    private String nameRu;
+    private String name;
 
     private Integer point;
 

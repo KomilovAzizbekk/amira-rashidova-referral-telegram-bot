@@ -19,7 +19,7 @@ import java.util.List;
 @DynamicUpdate
 @Entity
 @Table(name = "promocodes")
-public class Promocode extends AbsLong {
+public class PromoCode extends AbsLong {
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -28,10 +28,7 @@ public class Promocode extends AbsLong {
     private TgUser owner;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    private List<TgUser> promoUser;
-
-    @Column(name = "discount_percent")
-    private Integer discountPercent;
+    private List<TgUser> promoUsers;
 
     @Column(name = "active", nullable = false)
     private boolean active;

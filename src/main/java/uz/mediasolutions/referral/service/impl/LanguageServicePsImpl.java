@@ -66,12 +66,7 @@ public class LanguageServicePsImpl implements LanguageServicePs {
                         .language("UZ")
                         .translation(dto.getTextUz())
                         .build();
-                LanguageSourcePs ru = LanguageSourcePs.builder()
-                        .languagePs(savedLanguagePs)
-                        .language("RU")
-                        .translation(dto.getTextRu())
-                        .build();
-                languageSourceRepositoryPs.saveAll(List.of(uz, ru));
+                languageSourceRepositoryPs.saveAll(List.of(uz));
             }
         }
         return ApiResult.success("CREATED SUCCESSFULLY");
@@ -92,21 +87,11 @@ public class LanguageServicePsImpl implements LanguageServicePs {
                         languageSourceRepositoryPs.save(uz);
                     }
 
-                    if (allByIdId.get(i).getLanguage().equals("RU")) {
-                        LanguageSourcePs ru = allByIdId.get(i);
-                        ru.setTranslation(dto.getTextRu() != null ? dto.getTextRu() : ru.getTranslation());
-                        ru.setLanguage("RU");
-                        languageSourceRepositoryPs.save(ru);
-                    }
                     if (!languageSourceRepositoryPs.existsByLanguageAndLanguagePsId("UZ", languagePs.getId()))
                         languageSourceRepositoryPs.save(new LanguageSourcePs(languagePs, "UZ", dto.getTextUz()));
-
-                    if (!languageSourceRepositoryPs.existsByLanguageAndLanguagePsId("RU", languagePs.getId()))
-                        languageSourceRepositoryPs.save(new LanguageSourcePs(languagePs, "RU", dto.getTextRu()));
                 }
             } else {
                 languageSourceRepositoryPs.save(new LanguageSourcePs(languagePs, "UZ", dto.getTextUz()));
-                languageSourceRepositoryPs.save(new LanguageSourcePs(languagePs, "RU", dto.getTextRu()));
             }
             return ApiResult.success("SAVED SUCCESSFULLY");
         } else

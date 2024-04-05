@@ -1,7 +1,8 @@
 package uz.mediasolutions.referral.entity;
 
 import lombok.*;
-import uz.mediasolutions.referral.enums.LanguageName;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 
@@ -11,16 +12,17 @@ import javax.persistence.*;
 @Setter
 @ToString
 @Builder
+@DynamicInsert
+@DynamicUpdate
 @Entity
-@Table(name = "languages")
-public class Language {
+@Table(name = "files")
+public class FileGif {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
-    @Enumerated(EnumType.STRING)
-    private LanguageName name;
+    @Column(name = "file_id")
+    private String fileId;
 
 }

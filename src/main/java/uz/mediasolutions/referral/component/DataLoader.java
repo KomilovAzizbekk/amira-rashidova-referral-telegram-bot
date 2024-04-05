@@ -31,7 +31,6 @@ public class DataLoader implements CommandLineRunner {
     private final LanguageSourceRepositoryPs languageSourceRepositoryPs;
     private final LanguageRepositoryPs languageRepositoryPs;
     private final StepRepository stepRepository;
-    private final LanguageRepository languageRepository;
 
     @Value("${spring.sql.init.mode}")
     private String mode;
@@ -50,9 +49,7 @@ public class DataLoader implements CommandLineRunner {
             addRole();
             addAdmin();
             addSteps();
-            addLanguage();
             addUzLangValues();
-            addRuLangValues();
         }
 
     }
@@ -83,13 +80,6 @@ public class DataLoader implements CommandLineRunner {
         }
     }
 
-    public void addLanguage() {
-        for (LanguageName value : LanguageName.values()) {
-            Language language = Language.builder().name(value).build();
-            languageRepository.save(language);
-        }
-    }
-
     public void addUzLangValues() throws IOException {
         Properties properties = new Properties();
         try (InputStream input = DataLoader.class.getClassLoader()
@@ -102,21 +92,6 @@ public class DataLoader implements CommandLineRunner {
             LanguagePs save = languageRepositoryPs.save(ps);
             LanguageSourcePs sourcePs = LanguageSourcePs.builder()
                     .languagePs(save).language("UZ").translation(value).build();
-            languageSourceRepositoryPs.save(sourcePs);
-        }
-    }
-
-    public void addRuLangValues() throws IOException {
-        Properties properties = new Properties();
-        try (InputStream input = DataLoader.class.getClassLoader()
-                .getResourceAsStream("messages_ru.properties")) {
-            properties.load(input);
-        }
-        for (String key : properties.stringPropertyNames()) {
-            String value = properties.getProperty(key);
-            LanguagePs languagePs = languageRepositoryPs.findByKey(key);
-            LanguageSourcePs sourcePs = LanguageSourcePs.builder()
-                    .languagePs(languagePs).language("RU").translation(value).build();
             languageSourceRepositoryPs.save(sourcePs);
         }
     }

@@ -16,14 +16,14 @@ public class CourseDTO {
 
     private Integer number;
 
-    private String nameUz;
-
-    private String nameRu;
+    private String name;
 
     private Integer price;
 
     private boolean active;
 
     private String channelId;
+
+    private Integer discount;
 
 }

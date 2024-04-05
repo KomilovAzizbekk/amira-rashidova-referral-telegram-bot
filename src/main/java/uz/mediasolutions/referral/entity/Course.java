@@ -21,11 +21,8 @@ import java.util.List;
 @Table(name = "courses")
 public class Course extends AbsLong {
 
-    @Column(name = "name_uz", nullable = false, unique = true)
-    private String nameUz;
-
-    @Column(name = "name_ru", nullable = false, unique = true)
-    private String nameRu;
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
 
     @Column(name = "number", nullable = false)
     private Integer number;
@@ -41,5 +38,8 @@ public class Course extends AbsLong {
 
     @ManyToMany(fetch = FetchType.LAZY)
     private List<TgUser> users;
+
+    @Column(name = "discount")
+    private Integer discount;
 
 }

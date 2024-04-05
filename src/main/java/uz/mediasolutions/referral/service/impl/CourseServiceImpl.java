@@ -28,8 +28,8 @@ public class CourseServiceImpl implements CourseService {
         if (search.equals("null")) {
             courses = courseRepository.findAllByOrderByNumberAsc(pageable);
         } else {
-            courses = courseRepository.findAllByNameUzContainsIgnoreCaseOrNameRuContainsIgnoreCaseOrderByNumberAsc(
-                    search, search, pageable);
+            courses = courseRepository.findAllByNameContainsIgnoreCaseOrderByNumberAsc(
+                    search, pageable);
         }
         Page<CourseDTO> mapped = courses.map(courseMapper::toDTO);
         return ApiResult.success(mapped);
@@ -63,9 +63,9 @@ public class CourseServiceImpl implements CourseService {
                 !courseRepository.existsByNumberAndId(dto.getNumber(), id)) {
             throw RestException.restThrow("NUMBER MUST BE UNIQUE", HttpStatus.BAD_REQUEST);
         } else {
-            course.setNameUz(dto.getNameUz());
-            course.setNameRu(dto.getNameRu());
+            course.setName(dto.getName().trim());
             course.setNumber(dto.getNumber());
+            course.setDiscount(dto.getDiscount());
             course.setChannelId(dto.getChannelId());
             course.setPrice(dto.getPrice());
             course.setActive(dto.isActive());

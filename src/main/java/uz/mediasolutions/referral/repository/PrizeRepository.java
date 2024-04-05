@@ -9,7 +9,6 @@ public interface PrizeRepository extends JpaRepository<Prize, Long> {
 
     Page<Prize> findAllByOrderByPointAsc(Pageable pageable);
 
-    Page<Prize> findAllByNameUzContainsIgnoreCaseOrNameRuContainsIgnoreCaseOrderByPointAsc(
-            String nameUz, String nameRu, Pageable pageable);
+    Page<Prize> findAllByNameContainsIgnoreCaseOrderByPointAsc(String name, Pageable pageable);
 
 }

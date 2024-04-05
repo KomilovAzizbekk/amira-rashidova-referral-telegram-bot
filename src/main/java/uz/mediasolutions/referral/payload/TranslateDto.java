@@ -10,6 +10,4 @@ public class TranslateDto {
     private String key;
 
     private String textUz;
-
-    private String textRu;
 }

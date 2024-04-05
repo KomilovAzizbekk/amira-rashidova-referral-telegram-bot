@@ -24,11 +24,8 @@ public class Prize {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name_uz", nullable = false, unique = true)
-    private String nameUz;
-
-    @Column(name = "name_ru", nullable = false, unique = true)
-    private String nameRu;
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
 
     @Column(name = "point", nullable = false)
     private Integer point;
