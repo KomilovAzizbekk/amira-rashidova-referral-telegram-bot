@@ -3,10 +3,8 @@ package uz.mediasolutions.referral.entity;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
-import uz.mediasolutions.referral.entity.template.AbsLong;
 
 import javax.persistence.*;
-import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -14,20 +12,26 @@ import java.util.List;
 @Setter
 @ToString
 @Builder
-@EqualsAndHashCode(callSuper = true)
 @DynamicInsert
 @DynamicUpdate
 @Entity
-@Table(name = "prize_app")
-public class PrizeApp extends AbsLong {
+@Table(name = "course_payment")
+public class CoursePayment {
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private TgUser user;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Prize prize;
+    @Column(name = "file_id")
+    private String fileId;
 
     @Column(name = "accepted")
     private Boolean accepted = null;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Course course;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private TgUser tgUser;
 
 }

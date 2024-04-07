@@ -4,12 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.ExportChatInviteLink;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.InputFile;
-import org.telegram.telegrambots.meta.api.objects.MessageEntity;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -40,9 +41,11 @@ public class MakeService {
     private final PrizeRepository prizeRepository;
     private final FileGifRepository fileGifRepository;
     private final PrizeAppRepository prizeAppRepository;
+    private final CoursePaymentRepository coursePaymentRepository;
 
     public static final String UZ = "UZ";
     public static final String COURSE_CHANNEL_ID = "-1001903287909";
+    public static final String CHANNEL_ID = "-1001903287909";
 
     public String getMessage(String key) {
         List<LanguagePs> allByLanguage = languageRepositoryPs.findAll();
@@ -363,15 +366,10 @@ public class MakeService {
         } else {
             PromoCode promoCode = promoCodeRepository.findByName(name);
 
-            //Adding user to promoUsers list
+            //Adding promo to user temporarily
             user.setUsingPromo(promoCode);
             tgUserRepository.save(user);
 
-            //Adding 1 point to the owner of the promoCode
-//            TgUser owner = promoCode.getOwner();
-//            Integer points = owner.getPoints();
-//            owner.setPoints(points + 1);
-//            tgUserRepository.save(owner);
             if (courseRepository.findAllByActiveIsTrueOrderByNumberAsc().isEmpty()) {
                 sendMessage.setText(getMessage(Message.NO_ACTIVE_COURSE));
                 sendMessage.setReplyMarkup(forNotActiveCourse());
@@ -448,15 +446,10 @@ public class MakeService {
 
         SendDocument sendDocument = new SendDocument();
 
-        FileGif fileGif = new FileGif();
-        if (fileGifRepository.existsById(1L)) {
-            fileGif = fileGifRepository.findById(1L).orElseThrow(
+        FileGif fileGif = fileGifRepository.findById(1L).orElseThrow(
                     () -> RestException.restThrow("GIF NOT FOUND", HttpStatus.BAD_REQUEST));
-            sendDocument.setDocument(new InputFile(fileGif.getFileId()));
-        } else {
-            sendDocument.setDocument(new InputFile("mm.mp4"));
-        }
 
+        sendDocument.setDocument(new InputFile(fileGif.getFileId()));
         sendDocument.setChatId(chatId);
         sendDocument.setCaption(String.format(getMessage(Message.CHOSEN_COURSE_MSG),
                 course.getName(),
@@ -466,6 +459,27 @@ public class MakeService {
         sendDocument.setParseMode("HTML");
         setUserStep(chatId, StepName.SEND_SCREENSHOT);
         return sendDocument;
+    }
+
+    public EditMessageText whenChosenCourse1(Update update, String data) {
+        String chatId = getChatId(update);
+        TgUser user = tgUserRepository.findByChatId(chatId);
+
+        Course course = courseRepository.findByName(data);
+        user.setTempCourse(course);
+        tgUserRepository.save(user);
+
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(chatId);
+        editMessageText.setText(String.format(getMessage(Message.CHOSEN_COURSE_MSG),
+                course.getName(),
+                course.getPrice(),
+                course.getPrice() - course.getDiscount()));
+        editMessageText.setReplyMarkup(forChosenCourse());
+        editMessageText.enableHtml(true);
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        setUserStep(chatId, StepName.SEND_SCREENSHOT);
+        return editMessageText;
     }
 
     private InlineKeyboardMarkup forChosenCourse() {
@@ -485,7 +499,7 @@ public class MakeService {
 
         button1.setUrl("https://t.me/nexrp");
         button2.setUrl("https://t.me/nexrp");
-        button3.setCallbackData("back");
+        button3.setCallbackData("back1");
 
 
         row1.add(button1);
@@ -513,13 +527,31 @@ public class MakeService {
         return new SendMessage(chatId, getMessage(Message.UPLOAD_GIF));
         }
 
-    public SendMessage whenMyBalance(Update update) {
+    public EditMessageText whenMyBalance(Update update) {
+        String chatId = getChatId(update);
+        TgUser user = tgUserRepository.findByChatId(chatId);
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(chatId);
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        if (prizeRepository.findAllByActiveIsTrueOrderByPointAsc().isEmpty()) {
+            editMessageText.setText(String.format(getMessage(Message.NO_ACTIVE_PRIZES), user.getPoints()));
+            editMessageText.setReplyMarkup(forNotActiveCourse());
+        } else {
+            editMessageText.setText(String.format(getMessage(Message.BALANCE_MSG), user.getPoints()));
+            editMessageText.setReplyMarkup(forMyBalance(chatId));
+        }
+        editMessageText.enableHtml(true);
+        setUserStep(chatId, StepName.CHOOSE_PRIZE);
+        return editMessageText;
+    }
+
+    public SendMessage whenMyBalanceInNo(Update update) {
         String chatId = getChatId(update);
         TgUser user = tgUserRepository.findByChatId(chatId);
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
         if (prizeRepository.findAllByActiveIsTrueOrderByPointAsc().isEmpty()) {
-            sendMessage.setText(getMessage(Message.NO_ACTIVE_PRIZES));
+            sendMessage.setText(String.format(getMessage(Message.NO_ACTIVE_PRIZES), user.getPoints()));
             sendMessage.setReplyMarkup(forNotActiveCourse());
         } else {
             sendMessage.setText(String.format(getMessage(Message.BALANCE_MSG), user.getPoints()));
@@ -605,6 +637,7 @@ public class MakeService {
 
         SendMessage sendMessage = new SendMessage(chatId,
                 getMessage(Message.APP_RECEIVED));
+        sendMessage.setReplyMarkup(forGetPromoCode());
         setUserStep(chatId, StepName.PENDING_PRIZE_APP);
         return sendMessage;
     }
@@ -620,15 +653,17 @@ public class MakeService {
         PrizeApp saved = prizeAppRepository.save(prizeApp);
         PromoCode promoCode = promoCodeRepository.findByOwnerChatId(chatId);
 
-        SendMessage sendMessage = new SendMessage(COURSE_CHANNEL_ID,
+        SendMessage sendMessage = new SendMessage(CHANNEL_ID,
                 String.format(getMessage(Message.PRIZE_APP),
                         saved.getId(),
                         saved.getUser().getName(),
                         promoCode != null ? promoCode.getName() : getMessage(Message.NO_PROMO),
                         saved.getUser().getPhoneNumber(),
                         saved.getUser().getPoints(),
+                        promoCode == null ? getMessage(Message.NO_PROMO) : getReferralUsers(promoCode),
                         saved.getPrize().getName(),
-                        saved.getPrize().getPoint()));
+                        saved.getPrize().getPoint(),
+                        getMessage(Message.PENDING)));
         sendMessage.enableHtml(true);
         sendMessage.setReplyMarkup(forPrizeAppChannel(saved.getId()));
         return sendMessage;
@@ -663,15 +698,16 @@ public class MakeService {
     }
 
 
-    public SendMessage whenAcceptOrRejectPrizeApp(Update update, String data) {
-        String chatId = getChatId(update);
+    public SendMessage whenAcceptOrRejectPrizeApp(String data) {
         Long prizeAppId = Long.valueOf(data.substring(11));
-        String action = data.substring(0, 10);
-        SendMessage sendMessage = new SendMessage();
-        sendMessage.setChatId(chatId);
+        String action = data.substring(0, 11);
 
         PrizeApp prizeApp = prizeAppRepository.findById(prizeAppId).orElseThrow(
                 () -> RestException.restThrow("APP NOT FOUND", HttpStatus.BAD_REQUEST));
+
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(prizeApp.getUser().getChatId());
+
         if (action.equals("acceptPrize")) {
             prizeApp.setAccepted(true);
             sendMessage.setText(String.format(getMessage(Message.ACCEPT_PRIZE_APP), prizeAppId));
@@ -682,6 +718,159 @@ public class MakeService {
         prizeAppRepository.save(prizeApp);
         sendMessage.enableHtml(true);
         return sendMessage;
+    }
+
+    public EditMessageText whenAcceptOrRejectPrizeAppChannel(Update update, String data) {
+        Long prizeAppId = Long.valueOf(data.substring(11));
+        PrizeApp prizeApp = prizeAppRepository.findById(prizeAppId).orElseThrow(
+                () -> RestException.restThrow("APP NOT FOUND", HttpStatus.BAD_REQUEST));
+
+        PromoCode promoCode = promoCodeRepository.findByOwnerChatId(prizeApp.getUser().getChatId());
+
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(CHANNEL_ID);
+        editMessageText.setText(String.format(getMessage(Message.PRIZE_APP),
+                prizeApp.getId(),
+                prizeApp.getUser().getName(),
+                promoCode != null ? promoCode.getName() : getMessage(Message.NO_PROMO),
+                prizeApp.getUser().getPhoneNumber(),
+                prizeApp.getUser().getPoints(),
+                promoCode == null ? getMessage(Message.NO_PROMO) : getReferralUsers(promoCode),
+                prizeApp.getPrize().getName(),
+                prizeApp.getPrize().getPoint(),
+                prizeApp.getAccepted() ? getMessage(Message.ACCEPTED) : getMessage(Message.REJECTED)));
+        editMessageText.enableHtml(true);
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        return editMessageText;
+    }
+
+    private String getReferralUsers(PromoCode promoCode) {
+        List<TgUser> promoUsers = promoCode.getPromoUsers();
+        StringBuilder forma = new StringBuilder();
+        if (promoUsers.isEmpty()) {
+            forma = new StringBuilder(getMessage(Message.NO_PROMO));
+        } else {
+            for (int i = 0; i < promoUsers.size(); i++) {
+                forma.append(String.format(getMessage(Message.PROMO_USERS),
+                        i + 1,
+                        promoUsers.get(i).getName(),
+                        promoUsers.get(i).getPhoneNumber())).append("\n");
+            }
+        }
+        return forma.toString();
+    }
+
+    public SendMessage whenSendScreenshot(Update update) {
+        String chatId = getChatId(update);
+        TgUser tgUser = tgUserRepository.findByChatId(chatId);
+        String fileId = update.getMessage().getPhoto().get(0).getFileId();
+        CoursePayment coursePayment = CoursePayment.builder()
+                .fileId(fileId)
+                .tgUser(tgUser)
+                .course(tgUser.getTempCourse())
+                .build();
+        CoursePayment saved = coursePaymentRepository.save(coursePayment);
+
+        SendMessage sendMessage = new SendMessage(chatId,
+                String.format(getMessage(Message.COURSE_PAYMENT_APP), saved.getId()));
+        sendMessage.enableHtml(true);
+        sendMessage.setReplyMarkup(forGetPromoCode());
+        return sendMessage;
+    }
+
+    public SendMessage whenNotScreenshot(Update update) {
+        String chatId = getChatId(update);
+        return new SendMessage(chatId, getMessage(Message.RETRY));
+    }
+
+    public SendPhoto whenSendPaymentAppToChannel(Update update) {
+        String fileId = update.getMessage().getPhoto().get(0).getFileId();
+        CoursePayment payment = coursePaymentRepository.findByFileId(fileId);
+
+        TgUser user = payment.getTgUser();
+        TgUser owner = user.getUsingPromo().getOwner();
+        Course tempCourse = payment.getTgUser().getTempCourse();
+
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setChatId(CHANNEL_ID);
+        sendPhoto.setPhoto(new InputFile(fileId));
+        sendPhoto.setReplyMarkup(forPaymentAppChannel(payment.getId()));
+        sendPhoto.setParseMode("HTML");
+        sendPhoto.setCaption(String.format(getMessage(Message.PAYMENT_APP),
+                payment.getId(),
+                user.getName(),
+                user.getPhoneNumber(),
+                user.getUsingPromo().getName(),
+                owner.getName(),
+                user.getUsingPromo().getName(),
+                owner.getPhoneNumber(),
+                owner.getPoints(),
+                tempCourse.getName(),
+                tempCourse.getPrice(),
+                tempCourse.getDiscount(),
+                tempCourse.getPrice() - tempCourse.getDiscount(),
+                getMessage(Message.PENDING)
+        ));
+        return sendPhoto;
+    }
+
+    private InlineKeyboardMarkup forPaymentAppChannel(Long paymentId) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        List<InlineKeyboardButton> row2 = new ArrayList<>();
+
+        InlineKeyboardButton button1 = new InlineKeyboardButton();
+        InlineKeyboardButton button2 = new InlineKeyboardButton();
+
+        button1.setText(getMessage(Message.ACCEPT));
+        button2.setText(getMessage(Message.REJECT));
+
+        button1.setCallbackData("acceptPayment" + paymentId);
+        button2.setCallbackData("rejectPayment" + paymentId);
+
+
+        row1.add(button1);
+        row1.add(button2);
+
+        rowsInline.add(row1);
+        rowsInline.add(row2);
+
+        markupInline.setKeyboard(rowsInline);
+
+        return markupInline;
+    }
+
+    public SendPhoto whenAcceptOrRejectPaymentAppChannel(String data) {
+        Long paymentId = Long.valueOf(data.substring(13));
+        CoursePayment payment = coursePaymentRepository.findById(paymentId).orElseThrow(
+                () -> RestException.restThrow("PAYMENT NOT FOUND", HttpStatus.BAD_REQUEST));
+
+        TgUser user = payment.getTgUser();
+        TgUser owner = user.getUsingPromo().getOwner();
+        Course tempCourse = payment.getTgUser().getTempCourse();
+
+        SendPhoto sendPhoto = new SendPhoto();
+        sendPhoto.setChatId(CHANNEL_ID);
+        sendPhoto.setPhoto(new InputFile(payment.getFileId()));
+        sendPhoto.setParseMode("HTML");
+        sendPhoto.setCaption(String.format(getMessage(Message.PAYMENT_APP),
+                payment.getId(),
+                user.getName(),
+                user.getPhoneNumber(),
+                user.getUsingPromo().getName(),
+                owner.getName(),
+                user.getUsingPromo().getName(),
+                owner.getPhoneNumber(),
+                owner.getPoints(),
+                tempCourse.getName(),
+                tempCourse.getPrice(),
+                tempCourse.getDiscount(),
+                tempCourse.getPrice() - tempCourse.getDiscount(),
+                payment.getAccepted() ? getMessage(Message.ACCEPTED) : getMessage(Message.REJECTED)
+        ));
+        return sendPhoto;
     }
 }
 

@@ -46,4 +46,14 @@ public interface Message {
     String REJECT = "reject";
     String ACCEPT_PRIZE_APP = "accept.prize.app";
     String REJECT_PRIZE_APP = "reject.prize.app";
+    String PENDING = "pending";
+    String ACCEPTED = "accepted";
+    String REJECTED = "rejected";
+    String PROMO_USERS = "promo.users";
+    String COURSE_PAYMENT_APP = "course.payment.app";
+    String RETRY = "retry";
+    String PAYMENT_APP = "payment.app";
+    String ACCEPT_PAYMENT_APP = "accept.payment.app";
+    String REJECT_PAYMENT_APP = "reject.payment.app";
+    String ENTER_TO_CHANNEL = "enter.to.channel";
 }

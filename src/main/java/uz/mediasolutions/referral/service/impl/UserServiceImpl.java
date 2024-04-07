@@ -81,7 +81,6 @@ public class UserServiceImpl implements UserService {
         }
 
         List<PromoUserDTO> promoUserDTOS = new ArrayList<>();
-        if (!promoCodes.isEmpty()) {
             for (PromoCode promoCode : promoCodes) {
                 for (TgUser promoUser : promoCode.getPromoUsers()) {
                     PromoUserDTO promoUserDTO = PromoUserDTO.builder()
@@ -90,7 +89,6 @@ public class UserServiceImpl implements UserService {
                             .promoUser(tgUserMapper.toDTO(promoUser))
                             .build();
                     promoUserDTOS.add(promoUserDTO);
-                }
             }
         }
         return ApiResult.success(new PageImpl<>(promoUserDTOS, pageable, promoUserDTOS.size()));
