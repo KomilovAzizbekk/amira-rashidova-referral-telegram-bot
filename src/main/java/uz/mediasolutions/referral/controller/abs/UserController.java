@@ -27,7 +27,7 @@ public interface UserController {
                                       @RequestParam(defaultValue = Rest.DEFAULT_PAGE_SIZE) int size,
                                       @RequestParam(defaultValue = "null", required = false) String search);
 
-    @GetMapping(GET_ALL)
+    @GetMapping(GET_ALL_PROMO_USERS)
     ApiResult<Page<PromoUserDTO>> getAllPromoUsers(@RequestParam(defaultValue = Rest.DEFAULT_PAGE_NUMBER) int page,
                                                    @RequestParam(defaultValue = Rest.DEFAULT_PAGE_SIZE) int size,
                                                    @RequestParam(defaultValue = "null", required = false) String search);
