@@ -130,7 +130,7 @@ public class TgService extends TelegramLongPollingBot {
                 } else if (data.startsWith("acceptPrize") ||
                         data.startsWith("rejectPrize")) {
                     execute(makeService.whenAcceptOrRejectPrizeApp(update, data));
-                    execute(makeService.whenAcceptOrRejectPrizeAppChannel(update, data));
+//                    execute(makeService.whenAcceptOrRejectPrizeAppChannel(update, data));
                 }
             } else if (update.hasMessage() && update.getMessage().hasDocument()) {
                 if (makeService.getUserStep(chatId).equals(StepName.UPLOAD_GIF)) {

@@ -19,4 +19,6 @@ public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
 
     List<PromoCode> findAllByOrderByNameAsc();
 
+    List<PromoCode> findAllByNameContainsIgnoreCaseOrderByNameAsc(String name);
+
 }

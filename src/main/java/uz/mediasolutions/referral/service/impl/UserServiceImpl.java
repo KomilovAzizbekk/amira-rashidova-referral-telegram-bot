@@ -73,16 +73,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public ApiResult<Page<PromoUserDTO>> getAllPromoUsers(int page, int size, String search) {
         Pageable pageable = PageRequest.of(page, size);
-        List<PromoCode> promoCodes = promoCodeRepository.findAllByOrderByNameAsc();
+        List<PromoCode> promoCodes;
+        if (search.equals("null")) {
+            promoCodes = promoCodeRepository.findAllByOrderByNameAsc();
+        } else {
+            promoCodes = promoCodeRepository.findAllByNameContainsIgnoreCaseOrderByNameAsc(search);
+        }
+
         List<PromoUserDTO> promoUserDTOS = new ArrayList<>();
-        for (PromoCode promoCode : promoCodes) {
-            for (TgUser promoUser : promoCode.getPromoUsers()) {
-                PromoUserDTO promoUserDTO = PromoUserDTO.builder()
-                        .promoName(promoCode.getName())
-                        .promoOwner(tgUserMapper.toDTO(promoCode.getOwner()))
-                        .promoUser(tgUserMapper.toDTO(promoUser))
-                        .build();
-                promoUserDTOS.add(promoUserDTO);
+        if (!promoCodes.isEmpty()) {
+            for (PromoCode promoCode : promoCodes) {
+                for (TgUser promoUser : promoCode.getPromoUsers()) {
+                    PromoUserDTO promoUserDTO = PromoUserDTO.builder()
+                            .promoName(promoCode.getName())
+                            .promoOwner(tgUserMapper.toDTO(promoCode.getOwner()))
+                            .promoUser(tgUserMapper.toDTO(promoUser))
+                            .build();
+                    promoUserDTOS.add(promoUserDTO);
+                }
             }
         }
         return ApiResult.success(new PageImpl<>(promoUserDTOS, pageable, promoUserDTOS.size()));
