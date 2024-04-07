@@ -58,4 +58,7 @@ public class TgUser extends AbsLong {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private PromoCode usingPromo;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Prize usingPrize;
 }

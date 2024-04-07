@@ -14,11 +14,13 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.mediasolutions.referral.entity.Course;
 import uz.mediasolutions.referral.entity.FileGif;
+import uz.mediasolutions.referral.entity.Prize;
 import uz.mediasolutions.referral.entity.TgUser;
 import uz.mediasolutions.referral.enums.StepName;
 import uz.mediasolutions.referral.exceptions.RestException;
 import uz.mediasolutions.referral.repository.CourseRepository;
 import uz.mediasolutions.referral.repository.FileGifRepository;
+import uz.mediasolutions.referral.repository.PrizeRepository;
 import uz.mediasolutions.referral.repository.TgUserRepository;
 import uz.mediasolutions.referral.utills.constants.Message;
 
@@ -33,6 +35,7 @@ public class TgService extends TelegramLongPollingBot {
     private final MakeService makeService;
     private final CourseRepository courseRepository;
     private final FileGifRepository fileGifRepository;
+    private final PrizeRepository prizeRepository;
 
     @Override
     public String getBotUsername() {
@@ -81,6 +84,13 @@ public class TgService extends TelegramLongPollingBot {
                     execute(makeService.whenMenu(update));
                 } else if (text.equals("/uploadGif")) {
                     execute(makeService.whenUpload(update));
+                } else if (makeService.getUserStep(chatId).equals(StepName.CONFIRM_PRIZE) &&
+                        text.equals(makeService.getMessage(Message.YES))) {
+                    execute(makeService.whenYesPrize(update));
+                    execute(makeService.whenPrizeAppChannel(update));
+                } else if (makeService.getUserStep(chatId).equals(StepName.CONFIRM_PRIZE) &&
+                        text.equals(makeService.getMessage(Message.NO))) {
+
                 }
             } else if (update.hasMessage() && update.getMessage().hasContact()) {
                 if (makeService.getUserStep(chatId).equals(StepName.ENTER_PHONE_NUMBER)) {
@@ -97,17 +107,30 @@ public class TgService extends TelegramLongPollingBot {
                 } else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_FROM_MENU) &&
                         data.equals("usePromoCode")) {
                     execute(makeService.whenUsePromoCode(update));
+                } else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_FROM_MENU) &&
+                        data.equals("myBalance")) {
+                    execute(makeService.whenMyBalance(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_COURSE) &&
                         getCourseName().contains(data)) {
                     execute(makeService.deleteMessageForCallback(update));
                     execute(makeService.whenChosenCourse(update, data));
-                } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_PROMO_CODE) &&
+                } else if ((makeService.getUserStep(chatId).equals(StepName.ENTER_PROMO_CODE) ||
+                        makeService.getUserStep(chatId).equals(StepName.CHOOSE_FROM_MENU) ||
+                        makeService.getUserStep(chatId).equals(StepName.CHOOSE_PRIZE)) &&
                         data.equals("back")) {
                     execute(makeService.whenMenuEdit(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.SEND_SCREENSHOT) &&
                         data.equals("back")) {
                     execute(makeService.deleteMessageForCallback(update));
                     execute(makeService.whenMenu(update));
+                } else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_PRIZE) &&
+                        getPrizeNames(update).contains(data)) {
+                    execute(makeService.deleteMessageForCallback(update));
+                    execute(makeService.whenChosenPrize(update, data));
+                } else if (data.startsWith("acceptPrize") ||
+                        data.startsWith("rejectPrize")) {
+                    execute(makeService.whenAcceptOrRejectPrizeApp(update, data));
+                    execute(makeService.whenAcceptOrRejectPrizeAppChannel(update, data));
                 }
             } else if (update.hasMessage() && update.getMessage().hasDocument()) {
                 if (makeService.getUserStep(chatId).equals(StepName.UPLOAD_GIF)) {
@@ -153,6 +176,19 @@ public class TgService extends TelegramLongPollingBot {
             courseNames.add(course.getName());
         }
         return courseNames;
+    }
+
+    public List<String> getPrizeNames(Update update) {
+        List<Prize> prizes = prizeRepository.findAllByActiveIsTrueOrderByPointAsc();
+        String chatId = makeService.getChatId(update);
+        TgUser user = tgUserRepository.findByChatId(chatId);
+
+        List<String> prizeNames = new ArrayList<>();
+        for (Prize prize : prizes) {
+            if (user.getPoints() >= prize.getPoint())
+                prizeNames.add(prize.getName());
+        }
+        return prizeNames;
     }
 
     public SendMessage whenEnterPhoneNumber2(Update update) throws TelegramApiException {

@@ -3,6 +3,7 @@ package uz.mediasolutions.referral.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -21,6 +22,7 @@ import uz.mediasolutions.referral.exceptions.RestException;
 import uz.mediasolutions.referral.repository.*;
 import uz.mediasolutions.referral.utills.constants.Message;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -37,6 +39,7 @@ public class MakeService {
     private final CourseRepository courseRepository;
     private final PrizeRepository prizeRepository;
     private final FileGifRepository fileGifRepository;
+    private final PrizeAppRepository prizeAppRepository;
 
     public static final String UZ = "UZ";
     public static final String COURSE_CHANNEL_ID = "-1001903287909";
@@ -509,5 +512,176 @@ public class MakeService {
         setUserStep(chatId, StepName.UPLOAD_GIF);
         return new SendMessage(chatId, getMessage(Message.UPLOAD_GIF));
         }
+
+    public SendMessage whenMyBalance(Update update) {
+        String chatId = getChatId(update);
+        TgUser user = tgUserRepository.findByChatId(chatId);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+        if (prizeRepository.findAllByActiveIsTrueOrderByPointAsc().isEmpty()) {
+            sendMessage.setText(getMessage(Message.NO_ACTIVE_PRIZES));
+            sendMessage.setReplyMarkup(forNotActiveCourse());
+        } else {
+            sendMessage.setText(String.format(getMessage(Message.BALANCE_MSG), user.getPoints()));
+            sendMessage.setReplyMarkup(forMyBalance(chatId));
+        }
+        sendMessage.enableHtml(true);
+        setUserStep(chatId, StepName.CHOOSE_PRIZE);
+        return sendMessage;
+    }
+
+    private InlineKeyboardMarkup forMyBalance(String chatId) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        List<Prize> prizes = prizeRepository.findAllByActiveIsTrueOrderByPointAsc();
+        TgUser user = tgUserRepository.findByChatId(chatId);
+
+        for (Prize prize : prizes) {
+            if (user.getPoints() >= prize.getPoint()) {
+                List<InlineKeyboardButton> row = new ArrayList<>();
+                InlineKeyboardButton button = new InlineKeyboardButton();
+                button.setText(String.format(getMessage(Message.PRIZE_FORMAT),
+                        prize.getName(),
+                        prize.getPoint()));
+                button.setCallbackData(prize.getName());
+                row.add(button);
+                rowsInline.add(row);
+            }
+        }
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        InlineKeyboardButton button1 = new InlineKeyboardButton();
+        button1.setText(getMessage(Message.BACK));
+        button1.setCallbackData("back");
+        row1.add(button1);
+        rowsInline.add(row1);
+
+        markupInline.setKeyboard(rowsInline);
+
+        return markupInline;
+    }
+
+    public SendMessage whenChosenPrize(Update update, String data) {
+        String chatId = getChatId(update);
+
+        Prize prize = prizeRepository.findByName(data);
+
+        TgUser user = tgUserRepository.findByChatId(chatId);
+        user.setUsingPrize(prize);
+        tgUserRepository.save(user);
+        SendMessage sendMessage = new SendMessage(chatId,
+                String.format(getMessage(Message.CONFIRM_PRIZE),
+                        user.getPoints(),
+                        prize.getName()));
+        sendMessage.enableHtml(true);
+        sendMessage.setReplyMarkup(forChosenPrize());
+        setUserStep(chatId, StepName.CONFIRM_PRIZE);
+        return sendMessage;
+    }
+
+    ReplyKeyboardMarkup forChosenPrize() {
+        ReplyKeyboardMarkup markup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> rowList = new ArrayList<>();
+        KeyboardRow row1 = new KeyboardRow();
+
+        KeyboardButton button1 = new KeyboardButton();
+        KeyboardButton button2 = new KeyboardButton();
+
+        button1.setText(getMessage(Message.YES));
+        button2.setText(getMessage(Message.NO));
+
+        row1.add(button1);
+        row1.add(button2);
+
+        rowList.add(row1);
+        markup.setKeyboard(rowList);
+        markup.setSelective(true);
+        markup.setResizeKeyboard(true);
+        return markup;
+    }
+
+    public SendMessage whenYesPrize(Update update) {
+        String chatId = getChatId(update);
+
+        SendMessage sendMessage = new SendMessage(chatId,
+                getMessage(Message.APP_RECEIVED));
+        setUserStep(chatId, StepName.PENDING_PRIZE_APP);
+        return sendMessage;
+    }
+
+
+    public SendMessage whenPrizeAppChannel(Update update) {
+        String chatId = getChatId(update);
+        TgUser user = tgUserRepository.findByChatId(chatId);
+        PrizeApp prizeApp = PrizeApp.builder()
+                .prize(user.getUsingPrize())
+                .user(user)
+                .build();
+        PrizeApp saved = prizeAppRepository.save(prizeApp);
+        PromoCode promoCode = promoCodeRepository.findByOwnerChatId(chatId);
+
+        SendMessage sendMessage = new SendMessage(COURSE_CHANNEL_ID,
+                String.format(getMessage(Message.PRIZE_APP),
+                        saved.getId(),
+                        saved.getUser().getName(),
+                        promoCode != null ? promoCode.getName() : getMessage(Message.NO_PROMO),
+                        saved.getUser().getPhoneNumber(),
+                        saved.getUser().getPoints(),
+                        saved.getPrize().getName(),
+                        saved.getPrize().getPoint()));
+        sendMessage.enableHtml(true);
+        sendMessage.setReplyMarkup(forPrizeAppChannel(saved.getId()));
+        return sendMessage;
+    }
+
+    private InlineKeyboardMarkup forPrizeAppChannel(Long prizeAppId) {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        List<InlineKeyboardButton> row2 = new ArrayList<>();
+
+        InlineKeyboardButton button1 = new InlineKeyboardButton();
+        InlineKeyboardButton button2 = new InlineKeyboardButton();
+
+        button1.setText(getMessage(Message.ACCEPT));
+        button2.setText(getMessage(Message.REJECT));
+
+        button1.setCallbackData("acceptPrize" + prizeAppId);
+        button2.setCallbackData("rejectPrize" + prizeAppId);
+
+
+        row1.add(button1);
+        row1.add(button2);
+
+        rowsInline.add(row1);
+        rowsInline.add(row2);
+
+        markupInline.setKeyboard(rowsInline);
+
+        return markupInline;
+    }
+
+
+    public SendMessage whenAcceptOrRejectPrizeApp(Update update, String data) {
+        String chatId = getChatId(update);
+        Long prizeAppId = Long.valueOf(data.substring(11));
+        String action = data.substring(0, 10);
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(chatId);
+
+        PrizeApp prizeApp = prizeAppRepository.findById(prizeAppId).orElseThrow(
+                () -> RestException.restThrow("APP NOT FOUND", HttpStatus.BAD_REQUEST));
+        if (action.equals("acceptPrize")) {
+            prizeApp.setAccepted(true);
+            sendMessage.setText(String.format(getMessage(Message.ACCEPT_PRIZE_APP), prizeAppId));
+        } else {
+            prizeApp.setAccepted(false);
+            sendMessage.setText(String.format(getMessage(Message.REJECT_PRIZE_APP), prizeAppId));
+        }
+        prizeAppRepository.save(prizeApp);
+        sendMessage.enableHtml(true);
+        return sendMessage;
+    }
 }
 

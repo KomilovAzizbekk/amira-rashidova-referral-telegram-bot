@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 import uz.mediasolutions.referral.controller.abs.UserController;
 import uz.mediasolutions.referral.manual.ApiResult;
+import uz.mediasolutions.referral.payload.PromoUserDTO;
 import uz.mediasolutions.referral.payload.TgUserDTO;
 import uz.mediasolutions.referral.service.abs.UserService;
 
@@ -17,6 +18,11 @@ public class UserControllerImpl implements UserController {
     @Override
     public ApiResult<Page<TgUserDTO>> getAll(int page, int size, String search) {
         return userService.getAll(page, size, search);
+    }
+
+    @Override
+    public ApiResult<Page<PromoUserDTO>> getAllPromoUsers(int page, int size, String search) {
+        return userService.getAllPromoUsers(page, size, search);
     }
 
     @Override

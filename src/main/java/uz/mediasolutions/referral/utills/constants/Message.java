@@ -33,4 +33,17 @@ public interface Message {
     String NO_ACTIVE_COURSE = "no.active.course";
     String UPLOAD_GIF = "upload.gif";
     String GIF_SAVED = "gif.saved";
+    String BALANCE_MSG = "balance.msg";
+    String NO_ACTIVE_PRIZES = "no.active.prizes";
+    String PRIZE_FORMAT = "prize.format";
+    String CONFIRM_PRIZE = "confirm.prize";
+    String YES = "yes";
+    String NO = "no";
+    String APP_RECEIVED = "app.received";
+    String PRIZE_APP = "prize.app";
+    String NO_PROMO = "no.promo";
+    String ACCEPT = "accept";
+    String REJECT = "reject";
+    String ACCEPT_PRIZE_APP = "accept.prize.app";
+    String REJECT_PRIZE_APP = "reject.prize.app";
 }
