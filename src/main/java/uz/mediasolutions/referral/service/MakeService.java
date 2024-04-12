@@ -3,8 +3,6 @@ package uz.mediasolutions.referral.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.ExportChatInviteLink;
 import org.telegram.telegrambots.meta.api.methods.send.SendDocument;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
@@ -23,7 +21,6 @@ import uz.mediasolutions.referral.exceptions.RestException;
 import uz.mediasolutions.referral.repository.*;
 import uz.mediasolutions.referral.utills.constants.Message;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -44,8 +41,8 @@ public class MakeService {
     private final CoursePaymentRepository coursePaymentRepository;
 
     public static final String UZ = "UZ";
-    public static final String COURSE_CHANNEL_ID = "-1001903287909";
-    public static final String CHANNEL_ID = "-1001903287909";
+    public static final String PRIZES_CHANNEL_ID = "-1002050962733";
+    public static final String PAYMENTS_CHANNEL_ID = "-1002088779020";
 
     public String getMessage(String key) {
         List<LanguagePs> allByLanguage = languageRepositoryPs.findAll();
@@ -258,8 +255,8 @@ public class MakeService {
             button4.setText(getMessage(Message.MY_BALANCE));
 
             button1.setCallbackData("getPromoCode");
-            button2.setUrl("https://t.me/nexrp");
-            button3.setUrl("https://t.me/nexrp");
+            button2.setUrl(getMessage(Message.LINK_FOR_PRIZE_LIST));
+            button3.setUrl(getMessage(Message.ACCOUNT_FOR_SUGGEST_COMPLAINT));
             button4.setCallbackData("myBalance");
 
             row1.add(button1);
@@ -273,7 +270,7 @@ public class MakeService {
 
             button1.setCallbackData("usePromoCode");
             button2.setCallbackData("getPromoCode");
-            button3.setUrl("https://t.me/nexrp");
+            button3.setUrl(getMessage(Message.ACCOUNT_FOR_SUGGEST_COMPLAINT));
 
             row1.add(button1);
             row2.add(button2);
@@ -293,7 +290,7 @@ public class MakeService {
         return number < 10 ? "0" + number : String.valueOf(number);
     }
 
-    public SendMessage whenGetPromoCode(Update update) {
+    public EditMessageText whenGetPromoCode(Update update) {
         String chatId = getChatId(update);
         TgUser user = tgUserRepository.findByChatId(chatId);
         String promoNumber = getPromoNumber(user.getRepetition());
@@ -308,13 +305,15 @@ public class MakeService {
         } else {
             saved = promoCodeRepository.findByOwnerChatId(chatId);
         }
-        SendMessage sendMessage = new SendMessage(chatId,
-                String.format(getMessage(Message.PROMO_MESSAGE),
-                        saved.getName()));
-        sendMessage.enableHtml(true);
-        sendMessage.setReplyMarkup(forGetPromoCode());
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(chatId);
+        editMessageText.setText(String.format(getMessage(Message.PROMO_MESSAGE),
+                saved.getName()));
+        editMessageText.enableHtml(true);
+        editMessageText.setReplyMarkup(forNotActiveCourse());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         setUserStep(chatId, StepName.GET_PROMO);
-        return sendMessage;
+        return editMessageText;
     }
 
     ReplyKeyboardMarkup forGetPromoCode() {
@@ -497,8 +496,8 @@ public class MakeService {
         button2.setText(getMessage(Message.PAY_PAYME));
         button3.setText(getMessage(Message.BACK));
 
-        button1.setUrl("https://t.me/nexrp");
-        button2.setUrl("https://t.me/nexrp");
+        button1.setUrl(getMessage(Message.URL_FOR_CLICK));
+        button2.setUrl(getMessage(Message.URL_FOR_PAYME));
         button3.setCallbackData("back1");
 
 
@@ -653,7 +652,7 @@ public class MakeService {
         PrizeApp saved = prizeAppRepository.save(prizeApp);
         PromoCode promoCode = promoCodeRepository.findByOwnerChatId(chatId);
 
-        SendMessage sendMessage = new SendMessage(CHANNEL_ID,
+        SendMessage sendMessage = new SendMessage(PRIZES_CHANNEL_ID,
                 String.format(getMessage(Message.PRIZE_APP),
                         saved.getId(),
                         saved.getUser().getName(),
@@ -728,7 +727,7 @@ public class MakeService {
         PromoCode promoCode = promoCodeRepository.findByOwnerChatId(prizeApp.getUser().getChatId());
 
         EditMessageText editMessageText = new EditMessageText();
-        editMessageText.setChatId(CHANNEL_ID);
+        editMessageText.setChatId(PRIZES_CHANNEL_ID);
         editMessageText.setText(String.format(getMessage(Message.PRIZE_APP),
                 prizeApp.getId(),
                 prizeApp.getUser().getName(),
@@ -792,7 +791,7 @@ public class MakeService {
         Course tempCourse = payment.getTgUser().getTempCourse();
 
         SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setChatId(CHANNEL_ID);
+        sendPhoto.setChatId(PAYMENTS_CHANNEL_ID);
         sendPhoto.setPhoto(new InputFile(fileId));
         sendPhoto.setReplyMarkup(forPaymentAppChannel(payment.getId()));
         sendPhoto.setParseMode("HTML");
@@ -852,7 +851,7 @@ public class MakeService {
         Course tempCourse = payment.getTgUser().getTempCourse();
 
         SendPhoto sendPhoto = new SendPhoto();
-        sendPhoto.setChatId(CHANNEL_ID);
+        sendPhoto.setChatId(PAYMENTS_CHANNEL_ID);
         sendPhoto.setPhoto(new InputFile(payment.getFileId()));
         sendPhoto.setParseMode("HTML");
         sendPhoto.setCaption(String.format(getMessage(Message.PAYMENT_APP),

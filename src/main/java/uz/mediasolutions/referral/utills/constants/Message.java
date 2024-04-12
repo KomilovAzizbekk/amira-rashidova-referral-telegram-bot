@@ -56,4 +56,8 @@ public interface Message {
     String ACCEPT_PAYMENT_APP = "accept.payment.app";
     String REJECT_PAYMENT_APP = "reject.payment.app";
     String ENTER_TO_CHANNEL = "enter.to.channel";
+    String URL_FOR_CLICK = "url.for.click";
+    String URL_FOR_PAYME = "url.for.payme";
+    String ACCOUNT_FOR_SUGGEST_COMPLAINT = "account.for.suggest.complaint";
+    String LINK_FOR_PRIZE_LIST = "link.for.prize.list";
 }

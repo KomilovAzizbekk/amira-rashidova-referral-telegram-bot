@@ -9,7 +9,6 @@ import org.telegram.telegrambots.meta.api.methods.groupadministration.ExportChat
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
-import org.telegram.telegrambots.meta.api.objects.ChatInviteLink;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -39,12 +38,16 @@ public class TgService extends TelegramLongPollingBot {
 
     @Override
     public String getBotUsername() {
-        return "sakaka_bot";
+//        return "sakaka_bot";
+        return "onglikod_bot";
+//        return "Azzzyy_bot";
     }
 
     @Override
     public String getBotToken() {
-        return "6052104473:AAEscLILevwPMcG_00PYqAf-Kpb7eIUCIGg";
+//        return "6052104473:AAEscLILevwPMcG_00PYqAf-Kpb7eIUCIGg";
+        return "6862539261:AAHzpuw_OrYkBbM1D4JrSQQ9ycRw5RHBVRM";
+//        return "5618168254:AAELRZcKMHGbxHqgmmc5E6ucalGJ9sXvGhk";
     }
 
     @SneakyThrows
@@ -115,7 +118,6 @@ public class TgService extends TelegramLongPollingBot {
                     execute(whenAcceptOrRejectPaymentApp(data));
                     execute(makeService.whenAcceptOrRejectPaymentAppChannel(data));
                 } else if (data.equals("getPromoCode")) {
-                    execute(makeService.deleteMessageForCallback(update));
                     execute(makeService.whenGetPromoCode(update));
                 } else if (data.equals("usePromoCode")) {
                     execute(makeService.whenUsePromoCode(update));
@@ -315,11 +317,20 @@ public class TgService extends TelegramLongPollingBot {
         }
         tgUserRepository.save(tgUser);
 
-        GetChatMember getChatMember = new GetChatMember(MakeService.COURSE_CHANNEL_ID,
-                update.getMessage().getChatId());
-        ChatMember member = execute(getChatMember);
+        String COURSE_CHANNEL_ID_1 = "-1001991925073";
+        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
+        String COURSE_CHANNEL_ID_2 = "-1002038255157";
+        ChatMember member2 = getChatMember(COURSE_CHANNEL_ID_2, update);
+        String COURSE_CHANNEL_ID_3 = "-1001713012851";
+        ChatMember member3 = getChatMember(COURSE_CHANNEL_ID_3, update);
+        String COURSE_CHANNEL_ID_4 = "-1002132650471";
+        ChatMember member4 = getChatMember(COURSE_CHANNEL_ID_4, update);
 
-        if (member.getStatus().equals("member")) {
+        if (
+                member1.getStatus().equals("member") ||
+                member2.getStatus().equals("member") ||
+                member3.getStatus().equals("member") ||
+                member4.getStatus().equals("member")) {
             tgUser.setCourseStudent(true);
             tgUserRepository.save(tgUser);
         }
@@ -331,5 +342,11 @@ public class TgService extends TelegramLongPollingBot {
 
         makeService.setUserStep(chatId, StepName.WAITING_APPROVE);
         return sendMessage;
+    }
+
+    private ChatMember getChatMember(String channelId, Update update) throws TelegramApiException {
+        GetChatMember getChatMember = new GetChatMember(channelId,
+                update.getMessage().getChatId());
+        return execute(getChatMember);
     }
 }
