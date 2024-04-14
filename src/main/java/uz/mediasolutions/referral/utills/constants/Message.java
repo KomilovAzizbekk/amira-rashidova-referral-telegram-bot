@@ -60,4 +60,6 @@ public interface Message {
     String URL_FOR_PAYME = "url.for.payme";
     String ACCOUNT_FOR_SUGGEST_COMPLAINT = "account.for.suggest.complaint";
     String LINK_FOR_PRIZE_LIST = "link.for.prize.list";
+    String PAY_UZUM = "pay.uzum";
+    String URL_FOR_UZUM = "url.for.uzum";
 }

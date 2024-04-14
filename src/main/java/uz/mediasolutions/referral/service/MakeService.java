@@ -242,27 +242,32 @@ public class MakeService {
         List<InlineKeyboardButton> row1 = new ArrayList<>();
         List<InlineKeyboardButton> row2 = new ArrayList<>();
         List<InlineKeyboardButton> row3 = new ArrayList<>();
+        List<InlineKeyboardButton> row4 = new ArrayList<>();
 
         InlineKeyboardButton button1 = new InlineKeyboardButton();
         InlineKeyboardButton button2 = new InlineKeyboardButton();
         InlineKeyboardButton button3 = new InlineKeyboardButton();
         InlineKeyboardButton button4 = new InlineKeyboardButton();
+        InlineKeyboardButton button5 = new InlineKeyboardButton();
 
         if (courseStudent) {
             button1.setText(getMessage(Message.GET_PRIVATE_PROMO_CODE));
-            button2.setText(getMessage(Message.PRIZES_LIST));
-            button3.setText(getMessage(Message.MENU_SUG_COMP));
-            button4.setText(getMessage(Message.MY_BALANCE));
+            button2.setText(getMessage(Message.USE_PROMO_CODE));
+            button3.setText(getMessage(Message.PRIZES_LIST));
+            button4.setText(getMessage(Message.MENU_SUG_COMP));
+            button5.setText(getMessage(Message.MY_BALANCE));
 
             button1.setCallbackData("getPromoCode");
-            button2.setUrl(getMessage(Message.LINK_FOR_PRIZE_LIST));
-            button3.setUrl(getMessage(Message.ACCOUNT_FOR_SUGGEST_COMPLAINT));
-            button4.setCallbackData("myBalance");
+            button2.setCallbackData("usePromoCode");
+            button3.setUrl(getMessage(Message.LINK_FOR_PRIZE_LIST));
+            button4.setUrl(getMessage(Message.ACCOUNT_FOR_SUGGEST_COMPLAINT));
+            button5.setCallbackData("myBalance");
 
             row1.add(button1);
             row2.add(button2);
             row3.add(button3);
-            row3.add(button4);
+            row4.add(button4);
+            row4.add(button5);
         } else {
             button1.setText(getMessage(Message.USE_PROMO_CODE));
             button2.setText(getMessage(Message.GET_PRIVATE_PROMO_CODE));
@@ -280,6 +285,7 @@ public class MakeService {
         rowsInline.add(row1);
         rowsInline.add(row2);
         rowsInline.add(row3);
+        rowsInline.add(row4);
 
         markupInline.setKeyboard(rowsInline);
 
@@ -362,6 +368,7 @@ public class MakeService {
 
         if (!promoCodeRepository.existsByName(name)) {
             sendMessage.setText(getMessage(Message.WRONG_PROMO_CODE));
+            sendMessage.setReplyMarkup(forGetPromoCode());
         } else {
             PromoCode promoCode = promoCodeRepository.findByName(name);
 
@@ -487,26 +494,32 @@ public class MakeService {
 
         List<InlineKeyboardButton> row1 = new ArrayList<>();
         List<InlineKeyboardButton> row2 = new ArrayList<>();
+        List<InlineKeyboardButton> row3 = new ArrayList<>();
 
         InlineKeyboardButton button1 = new InlineKeyboardButton();
         InlineKeyboardButton button2 = new InlineKeyboardButton();
         InlineKeyboardButton button3 = new InlineKeyboardButton();
+        InlineKeyboardButton button4 = new InlineKeyboardButton();
 
         button1.setText(getMessage(Message.PAY_CLICK));
         button2.setText(getMessage(Message.PAY_PAYME));
-        button3.setText(getMessage(Message.BACK));
+        button3.setText(getMessage(Message.PAY_UZUM));
+        button4.setText(getMessage(Message.BACK));
 
         button1.setUrl(getMessage(Message.URL_FOR_CLICK));
         button2.setUrl(getMessage(Message.URL_FOR_PAYME));
-        button3.setCallbackData("back1");
+        button3.setUrl(Message.URL_FOR_UZUM);
+        button4.setCallbackData("back1");
 
 
         row1.add(button1);
         row1.add(button2);
         row2.add(button3);
+        row3.add(button4);
 
         rowsInline.add(row1);
         rowsInline.add(row2);
+        rowsInline.add(row3);
 
         markupInline.setKeyboard(rowsInline);
 

@@ -23,6 +23,7 @@ import uz.mediasolutions.referral.utills.constants.Message;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +81,8 @@ public class TgService extends TelegramLongPollingBot {
                         text.equals(makeService.getMessage(Message.APPROVE))) {
                     deleteMessage(update);
                     execute(makeService.whenMenu(update));
-                } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_PROMO_CODE)) {
+                } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_PROMO_CODE) &&
+                        !text.equals(makeService.getMessage(Message.BACK))) {
                     execute(makeService.whenEnteredPromoCode(update));
                 } else if (text.equals(makeService.getMessage(Message.BACK))) {
                     deleteMessage(update);
@@ -173,8 +175,10 @@ public class TgService extends TelegramLongPollingBot {
 
             //Adding +1 point to the owner of the promo code
             TgUser owner = coursePayment.getTgUser().getUsingPromo().getOwner();
-            owner.setPoints(owner.getPoints() + 1);
-            tgUserRepository.save(owner);
+            if (!Objects.equals(coursePayment.getTgUser().getChatId(), owner.getChatId())) {
+                owner.setPoints(owner.getPoints() + 1);
+                tgUserRepository.save(owner);
+            }
 
             //Adding user to course
             Course course = coursePayment.getCourse();
@@ -317,6 +321,9 @@ public class TgService extends TelegramLongPollingBot {
         }
         tgUserRepository.save(tgUser);
 
+//        String COURSE_CHANNEL_ID_1 = "-1001903287909";
+//        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
+
         String COURSE_CHANNEL_ID_1 = "-1001991925073";
         ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
         String COURSE_CHANNEL_ID_2 = "-1002038255157";
@@ -328,9 +335,10 @@ public class TgService extends TelegramLongPollingBot {
 
         if (
                 member1.getStatus().equals("member") ||
-                member2.getStatus().equals("member") ||
-                member3.getStatus().equals("member") ||
-                member4.getStatus().equals("member")) {
+                        member2.getStatus().equals("member") ||
+                        member3.getStatus().equals("member") ||
+                        member4.getStatus().equals("member")
+        ) {
             tgUser.setCourseStudent(true);
             tgUserRepository.save(tgUser);
         }
