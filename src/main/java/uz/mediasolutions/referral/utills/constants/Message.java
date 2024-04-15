@@ -15,8 +15,7 @@ public interface Message {
     String YOU_ARE_BANNED = "you.are.banned";
     String REGISTRATION_MESSAGE = "registration.message";
     String APPROVE = "approve";
-    String WELCOME_TO_MENU_STRANGER = "welcome.to.menu.stranger";
-    String WELCOME_TO_MENU_STUDENT = "welcome.to.menu.student";
+    String WELCOME_TO_MENU = "welcome.to.menu";
     String GET_PRIVATE_PROMO_CODE = "get.private.promo.code";
     String PRIZES_LIST = "prize.list";
     String MY_BALANCE = "my.balance";
@@ -62,4 +61,8 @@ public interface Message {
     String LINK_FOR_PRIZE_LIST = "link.for.prize.list";
     String PAY_UZUM = "pay.uzum";
     String URL_FOR_UZUM = "url.for.uzum";
+    String MENU_TELEGRAPH_LINK = "menu.telegraph.link";
+    String URL_FOR_PAYNET = "url.for.paynet";
+    String PAY_PAYNET = "pay.paynet";
+    String CHOSEN_COURSE_INFORMATION_LINK = "chosen.course.information.link";
 }

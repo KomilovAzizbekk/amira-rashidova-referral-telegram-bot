@@ -138,7 +138,7 @@ public class MakeService {
 
         TgUser user = tgUserRepository.findByChatId(chatId);
         user.setName(update.getMessage().getText());
-        user.setRepetition(tgUserRepository.countAllByNameContainsIgnoreCase(update.getMessage().getText())+1);
+        user.setRepetition(tgUserRepository.countAllByNameContainsIgnoreCase(update.getMessage().getText()) + 1);
         tgUserRepository.save(user);
 
         SendMessage sendMessage = new SendMessage(chatId, getMessage(Message.ENTER_PHONE_NUMBER));
@@ -199,14 +199,9 @@ public class MakeService {
 
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
-        if (user.isCourseStudent()) {
-            editMessageText.setText(String.format(getMessage(Message.WELCOME_TO_MENU_STUDENT),
-                    user.getName()));
-        } else {
-            editMessageText.setText(String.format(getMessage(Message.WELCOME_TO_MENU_STRANGER),
-                    user.getName(),
-                    "Bu yerda Telegraph link bo'lishi mumkin edi:)"));
-        }
+        editMessageText.setText(String.format(getMessage(Message.WELCOME_TO_MENU),
+                user.getName(),
+                getMessage(Message.MENU_TELEGRAPH_LINK)));
         editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         editMessageText.enableHtml(true);
         editMessageText.setReplyMarkup(forMenu(user.isCourseStudent()));
@@ -220,14 +215,10 @@ public class MakeService {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
-        if (user.isCourseStudent()) {
-            sendMessage.setText(String.format(getMessage(Message.WELCOME_TO_MENU_STUDENT),
-                    user.getName()));
-        } else {
-            sendMessage.setText(String.format(getMessage(Message.WELCOME_TO_MENU_STRANGER),
-                    user.getName(),
-                    "Bu yerda Telegraph link bo'lishi mumkin edi:)"));
-        }
+
+        sendMessage.setText(String.format(getMessage(Message.WELCOME_TO_MENU),
+                user.getName(),
+                getMessage(Message.MENU_TELEGRAPH_LINK)));
 
         sendMessage.enableHtml(true);
         sendMessage.setReplyMarkup(forMenu(user.isCourseStudent()));
@@ -453,7 +444,7 @@ public class MakeService {
         SendDocument sendDocument = new SendDocument();
 
         FileGif fileGif = fileGifRepository.findById(1L).orElseThrow(
-                    () -> RestException.restThrow("GIF NOT FOUND", HttpStatus.BAD_REQUEST));
+                () -> RestException.restThrow("GIF NOT FOUND", HttpStatus.BAD_REQUEST));
 
         sendDocument.setDocument(new InputFile(fileGif.getFileId()));
         sendDocument.setChatId(chatId);
@@ -479,6 +470,7 @@ public class MakeService {
         editMessageText.setChatId(chatId);
         editMessageText.setText(String.format(getMessage(Message.CHOSEN_COURSE_MSG),
                 course.getName(),
+                getMessage(Message.CHOSEN_COURSE_INFORMATION_LINK),
                 course.getPrice(),
                 course.getPrice() - course.getDiscount()));
         editMessageText.setReplyMarkup(forChosenCourse());
@@ -500,22 +492,26 @@ public class MakeService {
         InlineKeyboardButton button2 = new InlineKeyboardButton();
         InlineKeyboardButton button3 = new InlineKeyboardButton();
         InlineKeyboardButton button4 = new InlineKeyboardButton();
+        InlineKeyboardButton button5 = new InlineKeyboardButton();
 
         button1.setText(getMessage(Message.PAY_CLICK));
         button2.setText(getMessage(Message.PAY_PAYME));
         button3.setText(getMessage(Message.PAY_UZUM));
-        button4.setText(getMessage(Message.BACK));
+        button4.setText(getMessage(Message.PAY_PAYNET));
+        button5.setText(getMessage(Message.BACK));
 
         button1.setUrl(getMessage(Message.URL_FOR_CLICK));
         button2.setUrl(getMessage(Message.URL_FOR_PAYME));
         button3.setUrl(Message.URL_FOR_UZUM);
-        button4.setCallbackData("back1");
+        button4.setUrl(Message.URL_FOR_PAYNET);
+        button5.setCallbackData("back1");
 
 
         row1.add(button1);
         row1.add(button2);
         row2.add(button3);
-        row3.add(button4);
+        row2.add(button4);
+        row3.add(button5);
 
         rowsInline.add(row1);
         rowsInline.add(row2);
@@ -527,7 +523,7 @@ public class MakeService {
     }
 
     public SendMessage whenUpload(Update update) {
-            String chatId = getChatId(update);
+        String chatId = getChatId(update);
 //            if (Objects.equals(chatId, "285710521") || Objects.equals(chatId, "6931160281")
 //                    || Objects.equals(chatId, "1302908674")) {
 //                setUserStep(chatId, StepName.UPLOAD_GIF);
@@ -537,7 +533,7 @@ public class MakeService {
 //            }
         setUserStep(chatId, StepName.UPLOAD_GIF);
         return new SendMessage(chatId, getMessage(Message.UPLOAD_GIF));
-        }
+    }
 
     public EditMessageText whenMyBalance(Update update) {
         String chatId = getChatId(update);
