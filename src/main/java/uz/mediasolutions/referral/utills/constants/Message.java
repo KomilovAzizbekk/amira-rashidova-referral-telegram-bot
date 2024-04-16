@@ -65,4 +65,5 @@ public interface Message {
     String URL_FOR_PAYNET = "url.for.paynet";
     String PAY_PAYNET = "pay.paynet";
     String CHOSEN_COURSE_INFORMATION_LINK = "chosen.course.information.link";
+    String REACH_TO_ADMIN = "reach.to.admin";
 }

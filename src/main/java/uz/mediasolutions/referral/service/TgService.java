@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.ExportChatInviteLink;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -70,6 +71,7 @@ public class TgService extends TelegramLongPollingBot {
                     execute(makeService.whenStart(update));
                 } else if (update.getMessage().getText().equals("/start") &&
                         tgUserRepository.existsByChatId(chatId)) {
+                    check(update);
                     execute(makeService.whenStartForExistedUser(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_NAME)) {
                     execute(makeService.whenEnterPhoneNumber(update));
@@ -79,6 +81,7 @@ public class TgService extends TelegramLongPollingBot {
                     execute(whenIncorrectPhoneFormat(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.WAITING_APPROVE) &&
                         text.equals(makeService.getMessage(Message.APPROVE))) {
+                    check(update);
                     deleteMessage(update);
                     execute(makeService.whenMenu(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_PROMO_CODE) &&
@@ -312,7 +315,7 @@ public class TgService extends TelegramLongPollingBot {
         return whenEnterPhoneNumber2(update);
     }
 
-    private SendMessage executeChangePhoneNumber(Update update) throws TelegramApiException {
+    private SendMessage executeChangePhoneNumber(Update update) {
         String chatId = makeService.getChatId(update);
 
         TgUser tgUser = tgUserRepository.findByChatId(chatId);
@@ -321,35 +324,71 @@ public class TgService extends TelegramLongPollingBot {
         }
         tgUserRepository.save(tgUser);
 
-//        String COURSE_CHANNEL_ID_1 = "-1001903287909";
-//        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
-
-        String COURSE_CHANNEL_ID_1 = "-1001991925073";
-        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
-        String COURSE_CHANNEL_ID_2 = "-1002038255157";
-        ChatMember member2 = getChatMember(COURSE_CHANNEL_ID_2, update);
-        String COURSE_CHANNEL_ID_3 = "-1001713012851";
-        ChatMember member3 = getChatMember(COURSE_CHANNEL_ID_3, update);
-        String COURSE_CHANNEL_ID_4 = "-1002132650471";
-        ChatMember member4 = getChatMember(COURSE_CHANNEL_ID_4, update);
-
-        if (
-                member1.getStatus().equals("member") ||
-                        member2.getStatus().equals("member") ||
-                        member3.getStatus().equals("member") ||
-                        member4.getStatus().equals("member")
-        ) {
-            tgUser.setCourseStudent(true);
-            tgUserRepository.save(tgUser);
-        }
+        check(update);
         SendMessage sendMessage = new SendMessage(chatId,
                 String.format(makeService.getMessage(Message.REGISTRATION_MESSAGE),
-                        tgUser.getName()));
+                        tgUser.getName(),
+                        makeService.getMessage(Message.MENU_TELEGRAPH_LINK)));
         sendMessage.enableHtml(true);
         sendMessage.setReplyMarkup(makeService.forExecutePhoneNumber());
 
         makeService.setUserStep(chatId, StepName.WAITING_APPROVE);
         return sendMessage;
+    }
+
+    @SneakyThrows
+    public void check(Update update) {
+        String chatId = makeService.getChatId(update);
+
+        TgUser tgUser = tgUserRepository.findByChatId(chatId);
+
+//        String COURSE_CHANNEL_ID_1 = "-1001903287909";
+//        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
+
+        String COURSE_CHANNEL_ID_1 = "-1001991925073";
+        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
+        ArrayList<ChatMember> admin1 = getChatAdmin(COURSE_CHANNEL_ID_1);
+        String COURSE_CHANNEL_ID_2 = "-1002038255157";
+        ChatMember member2 = getChatMember(COURSE_CHANNEL_ID_2, update);
+        ArrayList<ChatMember> admin2 = getChatAdmin(COURSE_CHANNEL_ID_1);
+        String COURSE_CHANNEL_ID_3 = "-1001713012851";
+        ChatMember member3 = getChatMember(COURSE_CHANNEL_ID_3, update);
+        ArrayList<ChatMember> admin3 = getChatAdmin(COURSE_CHANNEL_ID_1);
+        String COURSE_CHANNEL_ID_4 = "-1002132650471";
+        ChatMember member4 = getChatMember(COURSE_CHANNEL_ID_4, update);
+        ArrayList<ChatMember> admin4 = getChatAdmin(COURSE_CHANNEL_ID_1);
+
+        if (member1.getStatus().equals("member") ||
+                member2.getStatus().equals("member") ||
+                member3.getStatus().equals("member") ||
+                member4.getStatus().equals("member")
+        ) {
+            tgUser.setCourseStudent(true);
+            tgUserRepository.save(tgUser);
+        }
+
+        CheckAdmins(chatId, tgUser, admin1, admin2);
+        CheckAdmins(chatId, tgUser, admin3, admin4);
+    }
+
+    private void CheckAdmins(String chatId, TgUser tgUser, ArrayList<ChatMember> admin3, ArrayList<ChatMember> admin4) {
+        for (ChatMember admin : admin3) {
+            if (admin.getUser().getId().toString().equals(chatId)) {
+                tgUser.setCourseStudent(true);
+                tgUserRepository.save(tgUser);
+            }
+        }
+        for (ChatMember admin : admin4) {
+            if (admin.getUser().getId().toString().equals(chatId)) {
+                tgUser.setCourseStudent(true);
+                tgUserRepository.save(tgUser);
+            }
+        }
+    }
+
+    private ArrayList<ChatMember> getChatAdmin(String channelId) throws TelegramApiException {
+        GetChatAdministrators getChatAdministrators = new GetChatAdministrators(channelId);
+        return execute(getChatAdministrators);
     }
 
     private ChatMember getChatMember(String channelId, Update update) throws TelegramApiException {

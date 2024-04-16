@@ -21,6 +21,7 @@ import uz.mediasolutions.referral.exceptions.RestException;
 import uz.mediasolutions.referral.repository.*;
 import uz.mediasolutions.referral.utills.constants.Message;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -200,8 +201,7 @@ public class MakeService {
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
         editMessageText.setText(String.format(getMessage(Message.WELCOME_TO_MENU),
-                user.getName(),
-                getMessage(Message.MENU_TELEGRAPH_LINK)));
+                user.getName()));
         editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         editMessageText.enableHtml(true);
         editMessageText.setReplyMarkup(forMenu(user.isCourseStudent()));
@@ -217,8 +217,7 @@ public class MakeService {
         sendMessage.setChatId(chatId);
 
         sendMessage.setText(String.format(getMessage(Message.WELCOME_TO_MENU),
-                user.getName(),
-                getMessage(Message.MENU_TELEGRAPH_LINK)));
+                user.getName()));
 
         sendMessage.enableHtml(true);
         sendMessage.setReplyMarkup(forMenu(user.isCourseStudent()));
@@ -307,10 +306,37 @@ public class MakeService {
         editMessageText.setText(String.format(getMessage(Message.PROMO_MESSAGE),
                 saved.getName()));
         editMessageText.enableHtml(true);
-        editMessageText.setReplyMarkup(forNotActiveCourse());
+        editMessageText.setReplyMarkup(forTepa());
         editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         setUserStep(chatId, StepName.GET_PROMO);
         return editMessageText;
+    }
+
+    private InlineKeyboardMarkup forTepa() {
+        InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
+        List<InlineKeyboardButton> row1 = new ArrayList<>();
+        List<InlineKeyboardButton> row2 = new ArrayList<>();
+
+        InlineKeyboardButton button1 = new InlineKeyboardButton();
+        InlineKeyboardButton button2 = new InlineKeyboardButton();
+
+        button1.setText(getMessage(Message.PRIZES_LIST));
+        button2.setText(getMessage(Message.BACK));
+
+        button1.setUrl(getMessage(Message.LINK_FOR_PRIZE_LIST));
+        button2.setCallbackData("back");
+
+        row1.add(button1);
+        row2.add(button2);
+
+        rowsInline.add(row1);
+        rowsInline.add(row2);
+
+        markupInline.setKeyboard(rowsInline);
+
+        return markupInline;
     }
 
     ReplyKeyboardMarkup forGetPromoCode() {
@@ -401,13 +427,18 @@ public class MakeService {
     }
 
     private String coursesWithDiscount() {
+
+        DecimalFormat formatter = new DecimalFormat("#,###");
+
         StringBuilder format = new StringBuilder();
         List<Course> courses = courseRepository.findAllByActiveIsTrueOrderByNumberAsc();
         for (Course course : courses) {
+            String price = formatter.format(course.getPrice());
+            String discount = formatter.format(course.getDiscount());
             format.append(String.format(getMessage(Message.COURSE_FORMAT),
                     course.getName(),
-                    course.getPrice(),
-                    course.getDiscount())).append("\n\n");
+                    price,
+                    discount)).append("\n\n");
         }
         return format.toString();
     }
@@ -446,12 +477,16 @@ public class MakeService {
         FileGif fileGif = fileGifRepository.findById(1L).orElseThrow(
                 () -> RestException.restThrow("GIF NOT FOUND", HttpStatus.BAD_REQUEST));
 
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        String price = formatter.format(course.getPrice());
+        String disPrice = formatter.format(course.getPrice() - course.getDiscount());
+
         sendDocument.setDocument(new InputFile(fileGif.getFileId()));
         sendDocument.setChatId(chatId);
         sendDocument.setCaption(String.format(getMessage(Message.CHOSEN_COURSE_MSG),
                 course.getName(),
-                course.getPrice(),
-                course.getPrice() - course.getDiscount()));
+                price,
+                disPrice));
         sendDocument.setReplyMarkup(forChosenCourse());
         sendDocument.setParseMode("HTML");
         setUserStep(chatId, StepName.SEND_SCREENSHOT);
@@ -466,13 +501,18 @@ public class MakeService {
         user.setTempCourse(course);
         tgUserRepository.save(user);
 
+
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        String price = formatter.format(course.getPrice());
+        String disPrice = formatter.format(course.getPrice() - course.getDiscount());
+
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
         editMessageText.setText(String.format(getMessage(Message.CHOSEN_COURSE_MSG),
                 course.getName(),
                 getMessage(Message.CHOSEN_COURSE_INFORMATION_LINK),
-                course.getPrice(),
-                course.getPrice() - course.getDiscount()));
+                price,
+                disPrice));
         editMessageText.setReplyMarkup(forChosenCourse());
         editMessageText.enableHtml(true);
         editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
@@ -487,24 +527,28 @@ public class MakeService {
         List<InlineKeyboardButton> row1 = new ArrayList<>();
         List<InlineKeyboardButton> row2 = new ArrayList<>();
         List<InlineKeyboardButton> row3 = new ArrayList<>();
+        List<InlineKeyboardButton> row4 = new ArrayList<>();
 
         InlineKeyboardButton button1 = new InlineKeyboardButton();
         InlineKeyboardButton button2 = new InlineKeyboardButton();
         InlineKeyboardButton button3 = new InlineKeyboardButton();
         InlineKeyboardButton button4 = new InlineKeyboardButton();
         InlineKeyboardButton button5 = new InlineKeyboardButton();
+        InlineKeyboardButton button6 = new InlineKeyboardButton();
 
         button1.setText(getMessage(Message.PAY_CLICK));
         button2.setText(getMessage(Message.PAY_PAYME));
         button3.setText(getMessage(Message.PAY_UZUM));
         button4.setText(getMessage(Message.PAY_PAYNET));
-        button5.setText(getMessage(Message.BACK));
+        button5.setText(getMessage(Message.REACH_TO_ADMIN));
+        button6.setText(getMessage(Message.BACK));
 
         button1.setUrl(getMessage(Message.URL_FOR_CLICK));
         button2.setUrl(getMessage(Message.URL_FOR_PAYME));
-        button3.setUrl(Message.URL_FOR_UZUM);
-        button4.setUrl(Message.URL_FOR_PAYNET);
-        button5.setCallbackData("back1");
+        button3.setUrl(getMessage(Message.URL_FOR_UZUM));
+        button4.setUrl(getMessage(Message.URL_FOR_PAYNET));
+        button5.setUrl(getMessage(Message.ACCOUNT_FOR_SUGGEST_COMPLAINT));
+        button6.setCallbackData("back1");
 
 
         row1.add(button1);
@@ -512,10 +556,12 @@ public class MakeService {
         row2.add(button3);
         row2.add(button4);
         row3.add(button5);
+        row4.add(button6);
 
         rowsInline.add(row1);
         rowsInline.add(row2);
         rowsInline.add(row3);
+        rowsInline.add(row4);
 
         markupInline.setKeyboard(rowsInline);
 
@@ -799,6 +845,12 @@ public class MakeService {
         TgUser owner = user.getUsingPromo().getOwner();
         Course tempCourse = payment.getTgUser().getTempCourse();
 
+
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        String price = formatter.format(tempCourse.getPrice());
+        String discount = formatter.format(tempCourse.getPrice());
+        String disPrice = formatter.format(tempCourse.getPrice() - tempCourse.getDiscount());
+
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(PAYMENTS_CHANNEL_ID);
         sendPhoto.setPhoto(new InputFile(fileId));
@@ -814,9 +866,9 @@ public class MakeService {
                 owner.getPhoneNumber(),
                 owner.getPoints(),
                 tempCourse.getName(),
-                tempCourse.getPrice(),
-                tempCourse.getDiscount(),
-                tempCourse.getPrice() - tempCourse.getDiscount(),
+                price,
+                discount,
+                disPrice,
                 getMessage(Message.PENDING)
         ));
         return sendPhoto;
@@ -859,6 +911,11 @@ public class MakeService {
         TgUser owner = user.getUsingPromo().getOwner();
         Course tempCourse = payment.getTgUser().getTempCourse();
 
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        String price = formatter.format(tempCourse.getPrice());
+        String discount = formatter.format(tempCourse.getPrice());
+        String disPrice = formatter.format(tempCourse.getPrice() - tempCourse.getDiscount());
+
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(PAYMENTS_CHANNEL_ID);
         sendPhoto.setPhoto(new InputFile(payment.getFileId()));
@@ -873,9 +930,9 @@ public class MakeService {
                 owner.getPhoneNumber(),
                 owner.getPoints(),
                 tempCourse.getName(),
-                tempCourse.getPrice(),
-                tempCourse.getDiscount(),
-                tempCourse.getPrice() - tempCourse.getDiscount(),
+                price,
+                discount,
+                disPrice,
                 payment.getAccepted() ? getMessage(Message.ACCEPTED) : getMessage(Message.REJECTED)
         ));
         return sendPhoto;
