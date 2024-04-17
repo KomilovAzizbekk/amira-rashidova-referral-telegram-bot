@@ -848,7 +848,7 @@ public class MakeService {
 
         DecimalFormat formatter = new DecimalFormat("#,###");
         String price = formatter.format(tempCourse.getPrice());
-        String discount = formatter.format(tempCourse.getPrice());
+        String discount = formatter.format(tempCourse.getDiscount());
         String disPrice = formatter.format(tempCourse.getPrice() - tempCourse.getDiscount());
 
         SendPhoto sendPhoto = new SendPhoto();
@@ -913,7 +913,7 @@ public class MakeService {
 
         DecimalFormat formatter = new DecimalFormat("#,###");
         String price = formatter.format(tempCourse.getPrice());
-        String discount = formatter.format(tempCourse.getPrice());
+        String discount = formatter.format(tempCourse.getDiscount());
         String disPrice = formatter.format(tempCourse.getPrice() - tempCourse.getDiscount());
 
         SendPhoto sendPhoto = new SendPhoto();
