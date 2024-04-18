@@ -5,11 +5,13 @@ import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.groupadministration.CreateChatInviteLink;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.ExportChatInviteLink;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
+import org.telegram.telegrambots.meta.api.objects.ChatInviteLink;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -207,11 +209,10 @@ public class TgService extends TelegramLongPollingBot {
     }
 
     private String generateInviteLink(String channelId) throws TelegramApiException {
-        ExportChatInviteLink link = new ExportChatInviteLink(channelId);
-        System.out.println(link);
-        String execute = execute(link);
-        System.out.println(execute);
-        return execute;
+        CreateChatInviteLink link = new CreateChatInviteLink(channelId);
+        link.setMemberLimit(1);
+        ChatInviteLink execute = execute(link);
+        return execute.getInviteLink();
     }
 
     private InlineKeyboardMarkup forCourseLink(Course course) throws TelegramApiException {
