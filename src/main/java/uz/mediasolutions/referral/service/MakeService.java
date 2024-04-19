@@ -43,6 +43,7 @@ public class MakeService {
 
     public static final String UZ = "UZ";
     public static final String PRIZES_CHANNEL_ID = "-1002050962733";
+//    public static final String PRIZES_CHANNEL_ID = "-1001903287909";
     public static final String PAYMENTS_CHANNEL_ID = "-1002088779020";
 
     public String getMessage(String key) {
@@ -763,6 +764,9 @@ public class MakeService {
         sendMessage.setChatId(prizeApp.getUser().getChatId());
 
         if (action.equals("acceptPrize")) {
+            TgUser user = prizeApp.getUser();
+            user.setPoints(user.getPoints() - prizeApp.getPrize().getPoint());
+            tgUserRepository.save(user);
             prizeApp.setAccepted(true);
             sendMessage.setText(String.format(getMessage(Message.ACCEPT_PRIZE_APP), prizeAppId));
         } else {
