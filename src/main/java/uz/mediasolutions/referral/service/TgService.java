@@ -6,14 +6,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.groupadministration.CreateChatInviteLink;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.ExportChatInviteLink;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatAdministrators;
-import org.telegram.telegrambots.meta.api.methods.groupadministration.GetChatMember;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.ChatInviteLink;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import org.telegram.telegrambots.meta.api.objects.chatmember.ChatMember;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -26,7 +22,6 @@ import uz.mediasolutions.referral.utills.constants.Message;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -36,9 +31,9 @@ public class TgService extends TelegramLongPollingBot {
     private final MakeService makeService;
     private final CourseRepository courseRepository;
     private final FileGifRepository fileGifRepository;
-    private final PrizeRepository prizeRepository;
+//    private final PrizeRepository prizeRepository;
     private final CoursePaymentRepository coursePaymentRepository;
-    private final PromoCodeRepository promoCodeRepository;
+//    private final PromoCodeRepository promoCodeRepository;
 
     @Override
     public String getBotUsername() {
@@ -73,7 +68,6 @@ public class TgService extends TelegramLongPollingBot {
                     execute(makeService.whenStart(update));
                 } else if (update.getMessage().getText().equals("/start") &&
                         tgUserRepository.existsByChatId(chatId)) {
-                    check(update);
                     execute(makeService.whenStartForExistedUser(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_NAME)) {
                     execute(makeService.whenEnterPhoneNumber(update));
@@ -83,26 +77,27 @@ public class TgService extends TelegramLongPollingBot {
                     execute(whenIncorrectPhoneFormat(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.WAITING_APPROVE) &&
                         text.equals(makeService.getMessage(Message.APPROVE))) {
-                    check(update);
                     deleteMessage(update);
                     execute(makeService.whenMenu(update));
-                } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_PROMO_CODE) &&
-                        !text.equals(makeService.getMessage(Message.BACK))) {
-                    execute(makeService.whenEnteredPromoCode(update));
+//                } else if (makeService.getUserStep(chatId).equals(StepName.ENTER_PROMO_CODE) &&
+//                        !text.equals(makeService.getMessage(Message.BACK))) {
+//                    execute(makeService.whenEnteredPromoCode(update));
                 } else if (text.equals(makeService.getMessage(Message.BACK))) {
                     deleteMessage(update);
                     execute(makeService.whenMenu(update));
                 } else if (text.equals("/uploadGif")) {
                     execute(makeService.whenUpload(update));
-                } else if (makeService.getUserStep(chatId).equals(StepName.CONFIRM_PRIZE) &&
-                        text.equals(makeService.getMessage(Message.YES))) {
-                    execute(makeService.whenYesPrize(update));
-                    execute(makeService.whenPrizeAppChannel(update));
-                } else if (makeService.getUserStep(chatId).equals(StepName.CONFIRM_PRIZE) &&
-                        text.equals(makeService.getMessage(Message.NO))) {
-                    deleteMessage(update);
-                    execute(makeService.whenMyBalanceInNo(update));
-                } else if (makeService.getUserStep(chatId).equals(StepName.SEND_SCREENSHOT)) {
+                }
+//                else if (makeService.getUserStep(chatId).equals(StepName.CONFIRM_PRIZE) &&
+//                        text.equals(makeService.getMessage(Message.YES))) {
+//                    execute(makeService.whenYesPrize(update));
+//                    execute(makeService.whenPrizeAppChannel(update));
+//                } else if (makeService.getUserStep(chatId).equals(StepName.CONFIRM_PRIZE) &&
+//                        text.equals(makeService.getMessage(Message.NO))) {
+//                    deleteMessage(update);
+//                    execute(makeService.whenMyBalanceInNo(update));
+//                }
+                else if (makeService.getUserStep(chatId).equals(StepName.SEND_SCREENSHOT)) {
                     execute(makeService.whenNotScreenshot(update));
                 }
             } else if (update.hasMessage() && update.getMessage().hasContact()) {
@@ -115,21 +110,25 @@ public class TgService extends TelegramLongPollingBot {
                 }
             } else if (update.hasCallbackQuery()) {
                 String data = update.getCallbackQuery().getData();
-                if (data.startsWith("acceptPrize") ||
-                        data.startsWith("rejectPrize")) {
-                    execute(makeService.whenAcceptOrRejectPrizeApp(data));
-                    execute(makeService.whenAcceptOrRejectPrizeAppChannel(update, data));
-                } else if (data.startsWith("acceptPayment") ||
+                if (data.startsWith("acceptPayment") ||
                         data.startsWith("rejectPayment")) {
                     execute(makeService.deleteMessageForCallback(update));
                     execute(whenAcceptOrRejectPaymentApp(data));
                     execute(makeService.whenAcceptOrRejectPaymentAppChannel(data));
-                } else if (data.equals("getPromoCode")) {
-                    execute(makeService.whenGetPromoCode(update));
-                } else if (data.equals("usePromoCode")) {
-                    execute(makeService.whenUsePromoCode(update));
-                } else if (data.equals("myBalance")) {
-                    execute(makeService.whenMyBalance(update));
+                }
+//                else if (data.startsWith("acceptPrize") ||
+//                        data.startsWith("rejectPrize")) {
+//                    execute(makeService.whenAcceptOrRejectPrizeApp(data));
+//                    execute(makeService.whenAcceptOrRejectPrizeAppChannel(update, data));
+//                } else if (data.equals("getPromoCode")) {
+//                    execute(makeService.whenGetPromoCode(update));
+//                } else if (data.equals("usePromoCode")) {
+//                    execute(makeService.whenUsePromoCode(update));
+//                } else if (data.equals("myBalance")) {
+//                    execute(makeService.whenMyBalance(update));
+//                }
+                else if (data.equals("pay")) {
+                    execute(makeService.whenEnteredPromoCode(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_COURSE) &&
                         getCourseName().contains(data)) {
                     if (fileGifRepository.existsById(1L)) {
@@ -143,11 +142,12 @@ public class TgService extends TelegramLongPollingBot {
                 } else if (data.equals("back1")) {
                     execute(makeService.deleteMessageForCallback(update));
                     execute(makeService.whenMenu(update));
-                } else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_PRIZE) &&
-                        getPrizeNames(update).contains(data)) {
-                    execute(makeService.deleteMessageForCallback(update));
-                    execute(makeService.whenChosenPrize(update, data));
                 }
+//                else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_PRIZE) &&
+//                        getPrizeNames(update).contains(data)) {
+//                    execute(makeService.deleteMessageForCallback(update));
+//                    execute(makeService.whenChosenPrize(update, data));
+//                }
             } else if (update.hasMessage() && update.getMessage().hasDocument()) {
                 if (makeService.getUserStep(chatId).equals(StepName.UPLOAD_GIF)) {
                     execute(whenSaveGif(update));
@@ -179,11 +179,11 @@ public class TgService extends TelegramLongPollingBot {
             sendMessage.setReplyMarkup(forCourseLink(coursePayment.getCourse()));
 
             //Adding +1 point to the owner of the promo code
-            TgUser owner = coursePayment.getTgUser().getUsingPromo().getOwner();
-            if (!Objects.equals(coursePayment.getTgUser().getChatId(), owner.getChatId())) {
-                owner.setPoints(owner.getPoints() + 1);
-                tgUserRepository.save(owner);
-            }
+//            TgUser owner = coursePayment.getTgUser().getUsingPromo().getOwner();
+//            if (!Objects.equals(coursePayment.getTgUser().getChatId(), owner.getChatId())) {
+//                owner.setPoints(owner.getPoints() + 1);
+//                tgUserRepository.save(owner);
+//            }
 
             //Adding user to course
             Course course = coursePayment.getCourse();
@@ -193,11 +193,11 @@ public class TgService extends TelegramLongPollingBot {
             courseRepository.save(course);
 
             //Adding user to promo user's list
-            PromoCode usingPromo = coursePayment.getTgUser().getUsingPromo();
-            List<TgUser> promoUsers = usingPromo.getPromoUsers();
-            promoUsers.add(coursePayment.getTgUser());
-            usingPromo.setPromoUsers(promoUsers);
-            promoCodeRepository.save(usingPromo);
+//            PromoCode usingPromo = coursePayment.getTgUser().getUsingPromo();
+//            List<TgUser> promoUsers = usingPromo.getPromoUsers();
+//            promoUsers.add(coursePayment.getTgUser());
+//            usingPromo.setPromoUsers(promoUsers);
+//            promoCodeRepository.save(usingPromo);
 
         } else {
             coursePayment.setAccepted(false);
@@ -272,20 +272,20 @@ public class TgService extends TelegramLongPollingBot {
         return courseNames;
     }
 
-    public List<String> getPrizeNames(Update update) {
-        List<Prize> prizes = prizeRepository.findAllByActiveIsTrueOrderByPointAsc();
-        String chatId = makeService.getChatId(update);
-        TgUser user = tgUserRepository.findByChatId(chatId);
+//    public List<String> getPrizeNames(Update update) {
+//        List<Prize> prizes = prizeRepository.findAllByActiveIsTrueOrderByPointAsc();
+//        String chatId = makeService.getChatId(update);
+//        TgUser user = tgUserRepository.findByChatId(chatId);
+//
+//        List<String> prizeNames = new ArrayList<>();
+//        for (Prize prize : prizes) {
+//            if (user.getPoints() >= prize.getPoint())
+//                prizeNames.add(prize.getName());
+//        }
+//        return prizeNames;
+//    }
 
-        List<String> prizeNames = new ArrayList<>();
-        for (Prize prize : prizes) {
-            if (user.getPoints() >= prize.getPoint())
-                prizeNames.add(prize.getName());
-        }
-        return prizeNames;
-    }
-
-    public SendMessage whenEnterPhoneNumber2(Update update) throws TelegramApiException {
+    public SendMessage whenEnterPhoneNumber2(Update update) {
         String chatId = makeService.getChatId(update);
         TgUser tgUser = tgUserRepository.findByChatId(chatId);
 
@@ -312,7 +312,7 @@ public class TgService extends TelegramLongPollingBot {
     }
 
 
-    public SendMessage whenIncorrectPhoneFormat(Update update) throws TelegramApiException {
+    public SendMessage whenIncorrectPhoneFormat(Update update) {
         return whenEnterPhoneNumber2(update);
     }
 
@@ -325,7 +325,6 @@ public class TgService extends TelegramLongPollingBot {
         }
         tgUserRepository.save(tgUser);
 
-        check(update);
         SendMessage sendMessage = new SendMessage(chatId,
                 String.format(makeService.getMessage(Message.REGISTRATION_MESSAGE),
                         tgUser.getName(),
@@ -337,64 +336,64 @@ public class TgService extends TelegramLongPollingBot {
         return sendMessage;
     }
 
-    @SneakyThrows
-    public void check(Update update) {
-        String chatId = makeService.getChatId(update);
-
-        TgUser tgUser = tgUserRepository.findByChatId(chatId);
-
-//        String COURSE_CHANNEL_ID_1 = "-1001903287909";
+//    @SneakyThrows
+//    public void check(Update update) {
+//        String chatId = makeService.getChatId(update);
+//
+//        TgUser tgUser = tgUserRepository.findByChatId(chatId);
+//
+////        String COURSE_CHANNEL_ID_1 = "-1001903287909";
+////        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
+//
+//        String COURSE_CHANNEL_ID_1 = "-1001991925073";
 //        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
-
-        String COURSE_CHANNEL_ID_1 = "-1001991925073";
-        ChatMember member1 = getChatMember(COURSE_CHANNEL_ID_1, update);
-        ArrayList<ChatMember> admin1 = getChatAdmin(COURSE_CHANNEL_ID_1);
-        String COURSE_CHANNEL_ID_2 = "-1002038255157";
-        ChatMember member2 = getChatMember(COURSE_CHANNEL_ID_2, update);
-        ArrayList<ChatMember> admin2 = getChatAdmin(COURSE_CHANNEL_ID_1);
-        String COURSE_CHANNEL_ID_3 = "-1001713012851";
-        ChatMember member3 = getChatMember(COURSE_CHANNEL_ID_3, update);
-        ArrayList<ChatMember> admin3 = getChatAdmin(COURSE_CHANNEL_ID_1);
-        String COURSE_CHANNEL_ID_4 = "-1002132650471";
-        ChatMember member4 = getChatMember(COURSE_CHANNEL_ID_4, update);
-        ArrayList<ChatMember> admin4 = getChatAdmin(COURSE_CHANNEL_ID_1);
-
-        if (member1.getStatus().equals("member") ||
-                member2.getStatus().equals("member") ||
-                member3.getStatus().equals("member") ||
-                member4.getStatus().equals("member")
-        ) {
-            tgUser.setCourseStudent(true);
-            tgUserRepository.save(tgUser);
-        }
-
-        CheckAdmins(chatId, tgUser, admin1, admin2);
-        CheckAdmins(chatId, tgUser, admin3, admin4);
-    }
-
-    private void CheckAdmins(String chatId, TgUser tgUser, ArrayList<ChatMember> admin3, ArrayList<ChatMember> admin4) {
-        for (ChatMember admin : admin3) {
-            if (admin.getUser().getId().toString().equals(chatId)) {
-                tgUser.setCourseStudent(true);
-                tgUserRepository.save(tgUser);
-            }
-        }
-        for (ChatMember admin : admin4) {
-            if (admin.getUser().getId().toString().equals(chatId)) {
-                tgUser.setCourseStudent(true);
-                tgUserRepository.save(tgUser);
-            }
-        }
-    }
-
-    private ArrayList<ChatMember> getChatAdmin(String channelId) throws TelegramApiException {
-        GetChatAdministrators getChatAdministrators = new GetChatAdministrators(channelId);
-        return execute(getChatAdministrators);
-    }
-
-    private ChatMember getChatMember(String channelId, Update update) throws TelegramApiException {
-        GetChatMember getChatMember = new GetChatMember(channelId,
-                update.getMessage().getChatId());
-        return execute(getChatMember);
-    }
+//        ArrayList<ChatMember> admin1 = getChatAdmin(COURSE_CHANNEL_ID_1);
+//        String COURSE_CHANNEL_ID_2 = "-1002038255157";
+//        ChatMember member2 = getChatMember(COURSE_CHANNEL_ID_2, update);
+//        ArrayList<ChatMember> admin2 = getChatAdmin(COURSE_CHANNEL_ID_1);
+//        String COURSE_CHANNEL_ID_3 = "-1001713012851";
+//        ChatMember member3 = getChatMember(COURSE_CHANNEL_ID_3, update);
+//        ArrayList<ChatMember> admin3 = getChatAdmin(COURSE_CHANNEL_ID_1);
+//        String COURSE_CHANNEL_ID_4 = "-1002132650471";
+//        ChatMember member4 = getChatMember(COURSE_CHANNEL_ID_4, update);
+//        ArrayList<ChatMember> admin4 = getChatAdmin(COURSE_CHANNEL_ID_1);
+//
+//        if (member1.getStatus().equals("member") ||
+//                member2.getStatus().equals("member") ||
+//                member3.getStatus().equals("member") ||
+//                member4.getStatus().equals("member")
+//        ) {
+//            tgUser.setCourseStudent(true);
+//            tgUserRepository.save(tgUser);
+//        }
+//
+//        CheckAdmins(chatId, tgUser, admin1, admin2);
+//        CheckAdmins(chatId, tgUser, admin3, admin4);
+//    }
+//
+//    private void CheckAdmins(String chatId, TgUser tgUser, ArrayList<ChatMember> admin3, ArrayList<ChatMember> admin4) {
+//        for (ChatMember admin : admin3) {
+//            if (admin.getUser().getId().toString().equals(chatId)) {
+//                tgUser.setCourseStudent(true);
+//                tgUserRepository.save(tgUser);
+//            }
+//        }
+//        for (ChatMember admin : admin4) {
+//            if (admin.getUser().getId().toString().equals(chatId)) {
+//                tgUser.setCourseStudent(true);
+//                tgUserRepository.save(tgUser);
+//            }
+//        }
+//    }
+//
+//    private ArrayList<ChatMember> getChatAdmin(String channelId) throws TelegramApiException {
+//        GetChatAdministrators getChatAdministrators = new GetChatAdministrators(channelId);
+//        return execute(getChatAdministrators);
+//    }
+//
+//    private ChatMember getChatMember(String channelId, Update update) throws TelegramApiException {
+//        GetChatMember getChatMember = new GetChatMember(channelId,
+//                update.getMessage().getChatId());
+//        return execute(getChatMember);
+//    }
 }
