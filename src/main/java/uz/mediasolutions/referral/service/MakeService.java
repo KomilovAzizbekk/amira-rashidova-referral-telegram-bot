@@ -791,12 +791,6 @@ public class MakeService {
         TgUser user = payment.getTgUser();
         Course tempCourse = user.getTempCourse();
 
-
-        DecimalFormat formatter = new DecimalFormat("#,###");
-        String price = formatter.format(tempCourse.getPrice());
-        String discount = formatter.format(tempCourse.getDiscount());
-        String disPrice = formatter.format(tempCourse.getPrice() - tempCourse.getDiscount());
-
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(PAYMENTS_CHANNEL_ID);
         sendPhoto.setPhoto(new InputFile(fileId));
@@ -807,9 +801,6 @@ public class MakeService {
                 user.getName(),
                 user.getPhoneNumber(),
                 tempCourse.getName(),
-                price,
-                discount,
-                disPrice,
                 getMessage(Message.PENDING)
         ));
         return sendPhoto;
@@ -851,11 +842,6 @@ public class MakeService {
         TgUser user = payment.getTgUser();
         Course tempCourse = user.getTempCourse();
 
-        DecimalFormat formatter = new DecimalFormat("#,###");
-        String price = formatter.format(tempCourse.getPrice());
-        String discount = formatter.format(tempCourse.getDiscount());
-        String disPrice = formatter.format(tempCourse.getPrice() - tempCourse.getDiscount());
-
         SendPhoto sendPhoto = new SendPhoto();
         sendPhoto.setChatId(PAYMENTS_CHANNEL_ID);
         sendPhoto.setPhoto(new InputFile(payment.getFileId()));
@@ -865,9 +851,6 @@ public class MakeService {
                 user.getName(),
                 user.getPhoneNumber(),
                 tempCourse.getName(),
-                price,
-                discount,
-                disPrice,
                 payment.getAccepted() ? getMessage(Message.ACCEPTED) : getMessage(Message.REJECTED)
         ));
         return sendPhoto;
