@@ -21,7 +21,6 @@ import uz.mediasolutions.referral.exceptions.RestException;
 import uz.mediasolutions.referral.repository.*;
 import uz.mediasolutions.referral.utills.constants.Message;
 
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -42,7 +41,7 @@ public class MakeService {
     private final CoursePaymentRepository coursePaymentRepository;
 
     public static final String UZ = "UZ";
-//    public static final String PRIZES_CHANNEL_ID = "-1002050962733";
+    //    public static final String PRIZES_CHANNEL_ID = "-1002050962733";
 //        public static final String PAYMENTS_CHANNEL_ID = "-1001903287909";
     public static final String PAYMENTS_CHANNEL_ID = "-1002088779020";
 
@@ -197,12 +196,10 @@ public class MakeService {
 
     public EditMessageText whenMenuEdit(Update update) {
         String chatId = getChatId(update);
-        TgUser user = tgUserRepository.findByChatId(chatId);
 
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(chatId);
-        editMessageText.setText(String.format(getMessage(Message.WELCOME_TO_MENU),
-                user.getName()));
+        editMessageText.setText(getMessage(Message.WELCOME_TO_MENU));
         editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         editMessageText.enableHtml(true);
         editMessageText.setReplyMarkup(forMenu());
@@ -212,13 +209,11 @@ public class MakeService {
 
     public SendMessage whenMenu(Update update) {
         String chatId = getChatId(update);
-        TgUser user = tgUserRepository.findByChatId(chatId);
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(chatId);
 
-        sendMessage.setText(String.format(getMessage(Message.WELCOME_TO_MENU),
-                user.getName()));
+        sendMessage.setText(getMessage(Message.WELCOME_TO_MENU));
 
         sendMessage.enableHtml(true);
         sendMessage.setReplyMarkup(forMenu());
@@ -405,16 +400,12 @@ public class MakeService {
         InlineKeyboardMarkup markupInline = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
 
-        List<Course> courses = courseRepository.findAllByActiveIsTrueOrderByNumberAsc();
-
-        for (Course course : courses) {
-            List<InlineKeyboardButton> row = new ArrayList<>();
-            InlineKeyboardButton button = new InlineKeyboardButton();
-            button.setText(course.getName());
-            button.setCallbackData(course.getName());
-            row.add(button);
-            rowsInline.add(row);
-        }
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        InlineKeyboardButton button = new InlineKeyboardButton();
+        button.setText(getMessage(Message.GET_PRIVATE_PROMO_CODE));
+        button.setCallbackData("goPayment");
+        row.add(button);
+        rowsInline.add(row);
 
         markupInline.setKeyboard(rowsInline);
 
@@ -426,7 +417,7 @@ public class MakeService {
         String chatId = getChatId(update);
         TgUser user = tgUserRepository.findByChatId(chatId);
 
-        Course course = courseRepository.findByName(data);
+        Course course = courseRepository.findById(1L).orElse(null);
         user.setTempCourse(course);
         tgUserRepository.save(user);
 
@@ -449,7 +440,7 @@ public class MakeService {
         String chatId = getChatId(update);
         TgUser user = tgUserRepository.findByChatId(chatId);
 
-        Course course = courseRepository.findByName(data);
+        Course course = courseRepository.findById(1L).orElse(null);
         user.setTempCourse(course);
         tgUserRepository.save(user);
 
@@ -770,10 +761,9 @@ public class MakeService {
                 .tgUser(tgUser)
                 .course(tgUser.getTempCourse())
                 .build();
-        CoursePayment saved = coursePaymentRepository.save(coursePayment);
+        coursePaymentRepository.save(coursePayment);
 
-        SendMessage sendMessage = new SendMessage(chatId,
-                String.format(getMessage(Message.COURSE_PAYMENT_APP), saved.getId()));
+        SendMessage sendMessage = new SendMessage(chatId, getMessage(Message.COURSE_PAYMENT_APP));
         sendMessage.enableHtml(true);
         sendMessage.setReplyMarkup(forGetPromoCode());
         return sendMessage;

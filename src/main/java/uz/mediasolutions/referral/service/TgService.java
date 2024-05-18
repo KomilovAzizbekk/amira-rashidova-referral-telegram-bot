@@ -130,7 +130,7 @@ public class TgService extends TelegramLongPollingBot {
                 else if (data.equals("pay")) {
                     execute(makeService.whenEnteredPromoCode(update));
                 } else if (makeService.getUserStep(chatId).equals(StepName.CHOOSE_COURSE) &&
-                        getCourseName().contains(data)) {
+                        data.equals("goPayment")) {
                     if (fileGifRepository.existsById(1L)) {
                         execute(makeService.deleteMessageForCallback(update));
                         execute(makeService.whenChosenCourse(update, data));
